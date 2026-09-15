@@ -45,14 +45,18 @@
   --radius-lg: 18px;
   --radius-full: 9999px;
 
-  /* Typography */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
+  /* Typography Hierarchy */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Monaco, monospace;
+  --tracking-tight: -0.025em;
+  --tracking-normal: -0.011em;
+  --tracking-wide: 0.05em;
 
   /* Buttery Animation Curves */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -85,18 +89,22 @@
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   font-family: var(--font-sans);
   font-size: 13px;
-  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.45;
   color: var(--text-primary);
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   user-select: none;
+
   background: 
     radial-gradient(circle at 10% 10%, var(--mesh-1) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, var(--mesh-2) 0%, transparent 45%),
