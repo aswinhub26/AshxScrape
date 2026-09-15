@@ -1,9 +1,9 @@
 /**
- * IndexedDB persistence layer for MapHarvest
+ * IndexedDB persistence layer for AshxScrape
  * Stores jobs and large batches of scraped rows safely without chrome.storage quota limits.
  */
 
-const DB_NAME = 'MapHarvestDB';
+const DB_NAME = 'AshxScrapeDB';
 const DB_VERSION = 1;
 
 let dbInstance = null;
@@ -38,7 +38,7 @@ export function openDatabase() {
     };
 
     request.onerror = (event) => {
-      console.error('[MapHarvest DB] Error opening database:', event.target.error);
+      console.error('[AshxScrape DB] Error opening database:', event.target.error);
       reject(event.target.error);
     };
   });

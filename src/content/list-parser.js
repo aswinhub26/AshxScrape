@@ -118,7 +118,7 @@ export function parseCard(cardEl, query = '') {
 
   } catch (err) {
     const snippet = cardEl.outerHTML ? cardEl.outerHTML.slice(0, 200) : 'unknown';
-    console.warn('[MapHarvest] Error parsing card:', err.message, 'Card snippet:', snippet);
+    console.warn('[AshxScrape] Error parsing card:', err.message, 'Card snippet:', snippet);
     return null;
   }
 }

@@ -1,4 +1,4 @@
-# 🌾 MapHarvest — Google Maps Business Data Scraper
+# ⚡ AshxScrape — Google Maps Business Data Scraper
 
 A production-quality **Chrome MV3 Extension** that extracts business listings from Google Maps search results and exports them to **CSV**, **XLSX**, and **JSON**.
 
@@ -31,8 +31,8 @@ A production-quality **Chrome MV3 Extension** that extracts business listings fr
 
 1. Clone this repo:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/mapharvest.git
-   cd mapharvest
+   git clone https://github.com/YOUR_USERNAME/AshxScrape.git
+   cd AshxScrape
    ```
 
 2. Install dependencies and build:
@@ -45,14 +45,14 @@ A production-quality **Chrome MV3 Extension** that extracts business listings fr
 
 4. Click **"Load unpacked"** → select the **`dist/`** folder
 
-5. Open [Google Maps](https://maps.google.com), search for a business type (e.g. *dentists in Chennai*), then click the 🌾 MapHarvest icon
+5. Open [Google Maps](https://maps.google.com), search for a business type (e.g. *dentists in Chennai*), then click the ⚡ AshxScrape icon
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-mapharvest/
+AshxScrape/
 ├── src/
 │   ├── content/
 │   │   ├── index.js          # Content script entry (injected into Maps)

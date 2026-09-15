@@ -44,7 +44,7 @@ async function runPhase3Test() {
   console.log(`[Phase 3 Test] Saved verified CSV to: ${sampleCsvPath}`);
 
   // 2. Live Browser Test: Harvest, Virtual Table & Filters
-  console.log('[Phase 3 Test] Launching Chrome for Testing with MapHarvest...');
+  console.log('[Phase 3 Test] Launching Chrome for Testing with AshxScrape...');
   const userDataDir = path.resolve(__dirname, 'test-prof-p3-' + Date.now());
 
   const browser = await puppeteer.launch({

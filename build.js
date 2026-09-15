@@ -46,7 +46,7 @@ async function runBuild() {
       emptyOutDir: false,
       lib: {
         entry: path.resolve(__dirname, 'src/content/index.js'),
-        name: 'MapHarvestContent',
+        name: 'AshxScrapeContent',
         formats: ['iife'],
         fileName: () => 'index.js'
       }

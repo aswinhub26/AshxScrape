@@ -1,5 +1,5 @@
 /**
- * MapHarvest Selector Registry & Fallback Chains
+ * AshxScrape Selector Registry & Fallback Chains
  * Config-driven DOM selectors ordered by stability:
  * ARIA roles/attributes -> semantic structure -> data attributes -> text anchors -> obfuscated classes.
  */

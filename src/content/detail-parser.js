@@ -1,5 +1,5 @@
 /**
- * MapHarvest Detail Panel Scraper (Pass B)
+ * AshxScrape Detail Panel Scraper (Pass B)
  * Opens each card's detail view, extracts richer fields, then navigates back.
  */
 
@@ -287,7 +287,7 @@ export async function runDetailPass(cards, existingRows, options = {}) {
       await sleepJitter(1000, 2000);
 
     } catch (err) {
-      console.warn(`[MapHarvest DetailParser] Error on card ${i + 1}:`, err.message);
+      console.warn(`[AshxScrape DetailParser] Error on card ${i + 1}:`, err.message);
       // Try to recover by going back
       try { window.history.back(); } catch (e) {}
       await sleepJitter(1500, 2500);

@@ -1,5 +1,5 @@
 /**
- * MapHarvest Canonical Data Schema & Field Definitions
+ * AshxScrape Canonical Data Schema & Field Definitions
  * Single source of truth for all scraped fields across list, detail, and export.
  */
 

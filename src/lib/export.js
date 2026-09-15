@@ -1,5 +1,5 @@
 /**
- * MapHarvest Export Engine
+ * AshxScrape Export Engine
  * Implements RFC 4180 CSV, TSV (for Sheets/Excel clipboard), and CSV Injection Guards.
  */
 
@@ -76,7 +76,7 @@ export function generateTsv(rows, columns = null) {
  * Generates XLSX binary using SheetJS (bundled via npm).
  * Returns an ArrayBuffer suitable for Blob download.
  */
-export async function generateXlsx(rows, query = 'MapHarvest Export') {
+export async function generateXlsx(rows, query = 'AshxScrape Export') {
   // Dynamically import xlsx (SheetJS) — bundled by Vite
   const XLSX = await import('xlsx');
 
@@ -112,11 +112,11 @@ export async function generateXlsx(rows, query = 'MapHarvest Export') {
 
   // Add metadata sheet
   const metaData = [
-    ['MapHarvest Export'],
+    ['AshxScrape Export'],
     ['Query', query],
     ['Total Records', rows.length],
     ['Exported At', new Date().toISOString()],
-    ['Extension', 'MapHarvest MV3']
+    ['Extension', 'AshxScrape MV3']
   ];
   const wsMeta = XLSX.utils.aoa_to_sheet(metaData);
   XLSX.utils.book_append_sheet(wb, wsMeta, 'Info');
@@ -140,7 +140,7 @@ export function generateJson(rows, query = '', jobId = null) {
 
   const envelope = {
     meta: {
-      tool: 'MapHarvest',
+      tool: 'AshxScrape',
       version: '1.0.0',
       query: query || null,
       jobId: jobId || null,
@@ -155,7 +155,7 @@ export function generateJson(rows, query = '', jobId = null) {
 }
 
 /**
- * Creates a slugified timestamped filename: mapharvest_<slug>_<YYYY-MM-DD_HHmm>.<ext>
+ * Creates a slugified timestamped filename: ASHXSCRAPE_<slug>_<YYYY-MM-DD_HHmm>.<ext>
  */
 export function generateFilename(query, ext = 'csv') {
   const slug = (query || 'leads')
@@ -172,7 +172,7 @@ export function generateFilename(query, ext = 'csv') {
   const mins = String(now.getMinutes()).padStart(2, '0');
 
   const timestamp = `${year}-${month}-${day}_${hours}${mins}`;
-  return `mapharvest_${slug}_${timestamp}.${ext}`;
+  return `ASHXSCRAPE_${slug}_${timestamp}.${ext}`;
 }
 
 /**

@@ -9,7 +9,7 @@ const chromePath = 'C:\\Users\\aswin\\.gemini\\antigravity\\scratch\\cft\\chrome
 const artifactDir = 'C:\\Users\\aswin\\.gemini\\antigravity\\brain\\9d4a857a-b676-4692-b1af-dc9449bfd885';
 
 async function runTest() {
-  console.log('[Test] Launching Chrome for Testing with MapHarvest extension...');
+  console.log('[Test] Launching Chrome for Testing with AshxScrape extension...');
   const browser = await puppeteer.launch({
     executablePath: chromePath,
     headless: false,
@@ -40,7 +40,7 @@ async function runTest() {
     if (!extId) {
       throw new Error('Extension ID could not be determined from chrome://extensions');
     }
-    console.log(`[Test] MapHarvest Extension ID: ${extId}`);
+    console.log(`[Test] AshxScrape Extension ID: ${extId}`);
 
     // Save screenshot of chrome://extensions
     const extPageScreenshot = path.resolve(artifactDir, 'phase1_extensions_page.png');
@@ -63,7 +63,7 @@ async function runTest() {
     console.log(`[Test] Saved Google Maps screenshot to: ${mapsScreenshot}`);
 
     // Step 3: Open Side Panel in a new window/tab
-    console.log('[Test] Opening MapHarvest Side Panel...');
+    console.log('[Test] Opening AshxScrape Side Panel...');
     const sidePanelPage = await browser.newPage();
     await sidePanelPage.setViewport({ width: 420, height: 740 });
     await sidePanelPage.goto(`chrome-extension://${extId}/src/sidepanel/index.html`);

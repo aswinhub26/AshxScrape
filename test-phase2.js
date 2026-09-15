@@ -9,7 +9,7 @@ const chromePath = 'C:\\Users\\aswin\\.gemini\\antigravity\\scratch\\cft\\chrome
 const artifactDir = 'C:\\Users\\aswin\\.gemini\\antigravity\\brain\\9d4a857a-b676-4692-b1af-dc9449bfd885';
 
 async function runPhase2Test() {
-  console.log('[Phase 2 Test] Launching Chrome for Testing with MapHarvest...');
+  console.log('[Phase 2 Test] Launching Chrome for Testing with AshxScrape...');
   const userDataDir = path.resolve(__dirname, 'test-prof-p2-' + Date.now());
 
   const browser = await puppeteer.launch({
@@ -55,7 +55,7 @@ async function runPhase2Test() {
     await new Promise(r => setTimeout(r, 6000));
 
     // 3. Open Side Panel
-    console.log('[Phase 2 Test] Opening MapHarvest Side Panel...');
+    console.log('[Phase 2 Test] Opening AshxScrape Side Panel...');
     const sidePanelPage = await browser.newPage();
     sidePanelPage.on('console', msg => console.log('[Panel Page]', msg.type(), msg.text()));
     await sidePanelPage.setViewport({ width: 440, height: 780 });
@@ -130,7 +130,7 @@ async function runPhase2Test() {
     console.log('[Phase 2 Test] Verifying IndexedDB rows in panel...');
     const idbStats = await sidePanelPage.evaluate(async () => {
       return new Promise((resolve) => {
-        const req = indexedDB.open('MapHarvestDB', 1);
+        const req = indexedDB.open('AshxScrapeDB', 1);
         req.onsuccess = (e) => {
           const db = e.target.result;
           const tx = db.transaction(['rows', 'jobs'], 'readonly');

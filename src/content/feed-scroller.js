@@ -62,29 +62,29 @@ export class FeedScroller {
    */
   harvestCurrentCards() {
     if (!this.feedEl) {
-      console.log('[MapHarvest] harvestCurrentCards: feedEl is null!');
+      console.log('[AshxScrape] harvestCurrentCards: feedEl is null!');
       return [];
     }
 
     const cards = pickAll(this.feedEl, SELECTORS.card);
-    console.log('[MapHarvest] harvestCurrentCards: cards found by selector =', cards.length);
+    console.log('[AshxScrape] harvestCurrentCards: cards found by selector =', cards.length);
     const newlyHarvested = [];
 
     for (const card of cards) {
       const row = parseCard(card, this.query);
       if (!row) {
-        console.log('[MapHarvest] parseCard returned null for card:', card.tagName, card.className);
+        console.log('[AshxScrape] parseCard returned null for card:', card.tagName, card.className);
         continue;
       }
       if (!row.placeId) {
-        console.log('[MapHarvest] row has no placeId:', row.name);
+        console.log('[AshxScrape] row has no placeId:', row.name);
         continue;
       }
       const isNew = this.dedupe.checkAndAdd(row.placeId);
       if (isNew) {
         this.collectedRows.push(row);
         newlyHarvested.push(row);
-        console.log('[MapHarvest] Harvested row #' + this.collectedRows.length + ':', row.name, '| CID:', row.placeId);
+        console.log('[AshxScrape] Harvested row #' + this.collectedRows.length + ':', row.name, '| CID:', row.placeId);
         this.onRowCollected(row, this.collectedRows.length);
 
         if (this.collectedRows.length >= this.maxResults) {
@@ -93,7 +93,7 @@ export class FeedScroller {
       }
     }
 
-    console.log('[MapHarvest] newlyHarvested count =', newlyHarvested.length, 'total collected =', this.collectedRows.length);
+    console.log('[AshxScrape] newlyHarvested count =', newlyHarvested.length, 'total collected =', this.collectedRows.length);
     return newlyHarvested;
   }
 
@@ -129,13 +129,13 @@ export class FeedScroller {
       while (this.state === JOB_STATE.SCROLLING) {
         // Condition 1: Max results limit hit
         if (this.collectedRows.length >= this.maxResults) {
-          console.log(`[MapHarvest] Reached max results cap (${this.maxResults}). Stopping.`);
+          console.log(`[AshxScrape] Reached max results cap (${this.maxResults}). Stopping.`);
           break;
         }
 
         // Condition 2: End-of-list sentinel appears
         if (this.isEndOfList()) {
-          console.log('[MapHarvest] End of list sentinel reached.');
+          console.log('[AshxScrape] End of list sentinel reached.');
           break;
         }
 
@@ -163,7 +163,7 @@ export class FeedScroller {
           // Give Google Maps time to fetch next batch
           await sleepJitter(1200, 2000);
           if (consecutiveBottoms >= 6) {
-            console.log('[MapHarvest] Reached bottom of scroll container across 6 cycles.');
+            console.log('[AshxScrape] Reached bottom of scroll container across 6 cycles.');
             break;
           }
         } else {
@@ -180,7 +180,7 @@ export class FeedScroller {
         if (newCards.length === 0) {
           consecutiveStalls++;
           if (consecutiveStalls >= 8) {
-            console.log('[MapHarvest] No new places found after 8 scroll cycles. Ending search.');
+            console.log('[AshxScrape] No new places found after 8 scroll cycles. Ending search.');
             break;
           }
         } else {
@@ -189,7 +189,7 @@ export class FeedScroller {
       }
 
     } catch (err) {
-      console.error('[MapHarvest] Scroller error:', err);
+      console.error('[AshxScrape] Scroller error:', err);
       this.onError(err);
     } finally {
       this.stop();

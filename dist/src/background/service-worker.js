@@ -1,39 +1,39 @@
 const o = {
   // Connection & Handshake
-  PING: "MAPHARVEST_PING",
-  PONG: "MAPHARVEST_PONG",
+  PING: "ASHXSCRAPE_PING",
+  PONG: "ASHXSCRAPE_PONG",
   // Page & Query Detection
-  GET_PAGE_STATUS: "MAPHARVEST_GET_PAGE_STATUS",
-  PAGE_STATUS: "MAPHARVEST_PAGE_STATUS",
+  GET_PAGE_STATUS: "ASHXSCRAPE_GET_PAGE_STATUS",
+  PAGE_STATUS: "ASHXSCRAPE_PAGE_STATUS",
   // Job Control
-  START_JOB: "MAPHARVEST_START_JOB",
-  PAUSE_JOB: "MAPHARVEST_PAUSE_JOB",
-  RESUME_JOB: "MAPHARVEST_RESUME_JOB",
-  STOP_JOB: "MAPHARVEST_STOP_JOB",
+  START_JOB: "ASHXSCRAPE_START_JOB",
+  PAUSE_JOB: "ASHXSCRAPE_PAUSE_JOB",
+  RESUME_JOB: "ASHXSCRAPE_RESUME_JOB",
+  STOP_JOB: "ASHXSCRAPE_STOP_JOB",
   // Scraper Events & Feedback
-  STATUS_UPDATE: "MAPHARVEST_STATUS_UPDATE",
-  ROW_COLLECTED: "MAPHARVEST_ROW_COLLECTED",
-  ROWS_BATCH: "MAPHARVEST_ROWS_BATCH",
-  JOB_COMPLETED: "MAPHARVEST_JOB_COMPLETED",
-  JOB_STOPPED: "MAPHARVEST_JOB_STOPPED",
-  JOB_ERROR: "MAPHARVEST_JOB_ERROR",
+  STATUS_UPDATE: "ASHXSCRAPE_STATUS_UPDATE",
+  ROW_COLLECTED: "ASHXSCRAPE_ROW_COLLECTED",
+  ROWS_BATCH: "ASHXSCRAPE_ROWS_BATCH",
+  JOB_COMPLETED: "ASHXSCRAPE_JOB_COMPLETED",
+  JOB_STOPPED: "ASHXSCRAPE_JOB_STOPPED",
+  JOB_ERROR: "ASHXSCRAPE_JOB_ERROR",
   // Health & Safety
-  SELECTOR_HEALTH_CHECK: "MAPHARVEST_SELECTOR_HEALTH_CHECK",
-  SELECTOR_HEALTH_RESULT: "MAPHARVEST_SELECTOR_HEALTH_RESULT",
-  BLOCK_DETECTED: "MAPHARVEST_BLOCK_DETECTED",
+  SELECTOR_HEALTH_CHECK: "ASHXSCRAPE_SELECTOR_HEALTH_CHECK",
+  SELECTOR_HEALTH_RESULT: "ASHXSCRAPE_SELECTOR_HEALTH_RESULT",
+  BLOCK_DETECTED: "ASHXSCRAPE_BLOCK_DETECTED",
   // Detail Pass (Phase 4)
-  START_DETAIL_PASS: "MAPHARVEST_START_DETAIL_PASS",
-  ROW_UPDATED: "MAPHARVEST_ROW_UPDATED",
-  DETAIL_PASS_COMPLETE: "MAPHARVEST_DETAIL_PASS_COMPLETE"
+  START_DETAIL_PASS: "ASHXSCRAPE_START_DETAIL_PASS",
+  ROW_UPDATED: "ASHXSCRAPE_ROW_UPDATED",
+  DETAIL_PASS_COMPLETE: "ASHXSCRAPE_DETAIL_PASS_COMPLETE"
 };
-console.log("[MapHarvest] Service worker initializing...");
-var n, T;
-(T = (n = chrome.sidePanel) == null ? void 0 : n.setPanelBehavior({ openPanelOnActionClick: !0 })) == null || T.catch((e) => console.warn("[MapHarvest] setPanelBehavior error:", e));
+console.log("[AshxScrape] Service worker initializing...");
+var n, c;
+(c = (n = chrome.sidePanel) == null ? void 0 : n.setPanelBehavior({ openPanelOnActionClick: !0 })) == null || c.catch((e) => console.warn("[AshxScrape] setPanelBehavior error:", e));
 chrome.alarms.create("keepAliveHeartbeat", { periodInMinutes: 0.4 });
 chrome.alarms.onAlarm.addListener((e) => {
   e.name;
 });
-async function S() {
+async function _() {
   const e = await chrome.tabs.query({ active: !0 }), r = e.filter((s) => s.url && !s.url.startsWith("chrome-extension://") && !s.url.startsWith("chrome://")), a = r.find((s) => s.url && s.url.includes("google.") && s.url.includes("/maps"));
   if (a)
     return a;
@@ -60,13 +60,13 @@ async function P(e) {
       files: ["src/content/index.js"]
     }), await new Promise((r) => setTimeout(r, 200)), !0;
   } catch (r) {
-    return console.warn(`[MapHarvest] Cannot inject into tab ${e}:`, r.message), !1;
+    return console.warn(`[AshxScrape] Cannot inject into tab ${e}:`, r.message), !1;
   }
 }
 chrome.runtime.onMessage.addListener((e, r, a) => !e || !e.action ? !1 : r.tab && (e.action === o.ROW_COLLECTED || e.action === o.STATUS_UPDATE || e.action === o.JOB_COMPLETED || e.action === o.JOB_ERROR) ? (chrome.runtime.sendMessage(e).catch(() => {
 }), !1) : e.action === o.GET_PAGE_STATUS ? ((async () => {
   try {
-    const t = await S();
+    const t = await _();
     if (!t || !t.id || !t.url) {
       a({
         isMaps: !1,
@@ -93,14 +93,14 @@ chrome.runtime.onMessage.addListener((e, r, a) => !e || !e.action ? !1 : r.tab &
       });
       return;
     }
-    const c = chrome.tabs.sendMessage(t.id, { action: o.GET_PAGE_STATUS }), E = new Promise((u, _) => setTimeout(() => _(new Error("Status query timeout")), 2500)), A = await Promise.race([c, E]);
-    a(A || {
+    const S = chrome.tabs.sendMessage(t.id, { action: o.GET_PAGE_STATUS }), A = new Promise((u, T) => setTimeout(() => T(new Error("Status query timeout")), 2500)), E = await Promise.race([S, A]);
+    a(E || {
       isMaps: !0,
       isSearchPage: !1,
       query: "Empty response from tab"
     });
   } catch (t) {
-    console.error("[MapHarvest] Error in GET_PAGE_STATUS:", t), a({
+    console.error("[AshxScrape] Error in GET_PAGE_STATUS:", t), a({
       isMaps: !1,
       isSearchPage: !1,
       query: "Error: " + t.message

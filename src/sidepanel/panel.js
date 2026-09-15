@@ -291,7 +291,7 @@ async function flushDbBatch() {
     await saveRowsBatch(currentJob.id, toSave);
     await updateJob(currentJob.id, { collectedCount: collectedRows.length });
   } catch (err) {
-    console.error('[MapHarvest DB] Failed to save batch:', err);
+    console.error('[AshxScrape DB] Failed to save batch:', err);
     log('DB save error: ' + err.message, 'error');
   }
 }
@@ -311,7 +311,7 @@ el.btnStart.addEventListener('click', async () => {
       activePort = null;
     }
 
-    activePort = chrome.tabs.connect(currentTabId, { name: 'mapharvest-stream' });
+    activePort = chrome.tabs.connect(currentTabId, { name: 'ashxscrape-stream' });
 
     activePort.onMessage.addListener((message) => {
       if (message.action === MSG.ROW_COLLECTED && message.payload?.row) {
@@ -576,7 +576,7 @@ async function renderJobHistory() {
 // Settings: wire up max results and detail pass auto-run settings persistence
 function loadSettings() {
   try {
-    const stored = localStorage.getItem('mapharvest_settings');
+    const stored = localStorage.getItem('ashxscrape_settings');
     if (stored) {
       const s = JSON.parse(stored);
       if (el.settingMaxResults && s.maxResults) el.settingMaxResults.value = s.maxResults;
@@ -591,7 +591,7 @@ function saveSettings() {
       maxResults: el.settingMaxResults ? parseInt(el.settingMaxResults.value, 10) || 200 : 200,
       autoDetailPass: el.settingDetailPass ? el.settingDetailPass.checked : false
     };
-    localStorage.setItem('mapharvest_settings', JSON.stringify(settings));
+    localStorage.setItem('ashxscrape_settings', JSON.stringify(settings));
     return settings;
   } catch (e) {
     return { maxResults: 200, autoDetailPass: false };

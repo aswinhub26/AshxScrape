@@ -1,11 +1,11 @@
 import { MSG, JOB_STATE } from '../shared/messages.js';
 
-console.log('[MapHarvest] Service worker initializing...');
+console.log('[AshxScrape] Service worker initializing...');
 
 // Configure Side Panel behavior to open when user clicks extension action icon
 chrome.sidePanel
   ?.setPanelBehavior({ openPanelOnActionClick: true })
-  ?.catch((error) => console.warn('[MapHarvest] setPanelBehavior error:', error));
+  ?.catch((error) => console.warn('[AshxScrape] setPanelBehavior error:', error));
 
 // Keep-alive heartbeat alarm for Manifest V3 service worker
 chrome.alarms.create('keepAliveHeartbeat', { periodInMinutes: 0.4 });
@@ -75,7 +75,7 @@ async function ensureContentScript(tabId) {
     await new Promise(r => setTimeout(r, 200));
     return true;
   } catch (err) {
-    console.warn(`[MapHarvest] Cannot inject into tab ${tabId}:`, err.message);
+    console.warn(`[AshxScrape] Cannot inject into tab ${tabId}:`, err.message);
     return false;
   }
 }
@@ -146,7 +146,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
 
       } catch (err) {
-        console.error('[MapHarvest] Error in GET_PAGE_STATUS:', err);
+        console.error('[AshxScrape] Error in GET_PAGE_STATUS:', err);
         sendResponse({
           isMaps: false,
           isSearchPage: false,

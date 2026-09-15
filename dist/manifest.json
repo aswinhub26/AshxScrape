@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "MapHarvest — Google Maps Scraper",
+  "name": "AshxScrape — Google Maps Scraper",
   "version": "1.0.0",
   "description": "Extract business data from Google Maps search results and export to CSV, XLSX, and JSON.",
   "permissions": [
@@ -45,7 +45,7 @@
     }
   ],
   "action": {
-    "default_title": "Open MapHarvest"
+    "default_title": "Open AshxScrape"
   },
   "icons": {
     "16": "icons/icon16.png",

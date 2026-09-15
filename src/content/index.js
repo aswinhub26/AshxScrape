@@ -4,7 +4,7 @@ import { runDetailPass } from './detail-parser.js';
 import { SELECTORS, pickAll } from './selectors.js';
 
 
-console.log('[MapHarvest] Content script active on:', window.location.href);
+console.log('[AshxScrape] Content script active on:', window.location.href);
 
 let activeScroller = null;
 let detailPassActive = false;
@@ -153,8 +153,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // 2. Direct streaming port connection from Side Panel
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== 'mapharvest-stream') return;
-  console.log('[MapHarvest] Direct streaming port connected from Side Panel.');
+  if (port.name !== 'ashxscrape-stream') return;
+  console.log('[AshxScrape] Direct streaming port connected from Side Panel.');
 
   port.onMessage.addListener((message) => {
     if (!message || !message.action) return;
@@ -254,7 +254,7 @@ chrome.runtime.onConnect.addListener((port) => {
   }); // end port.onMessage
 
   port.onDisconnect.addListener(() => {
-    console.log('[MapHarvest] Streaming port disconnected.');
+    console.log('[AshxScrape] Streaming port disconnected.');
   });
 });
 
