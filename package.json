@@ -1,0 +1,16 @@
+{
+  "name": "mapharvest",
+  "version": "1.0.0",
+  "description": "Google Maps Data Scraper Chrome MV3 Extension",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.43.1",
+    "vite": "^5.4.14"
+  }
+}

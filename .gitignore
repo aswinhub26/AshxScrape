@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build output — keep dist/ so users can load unpacked without building
+# dist/
+
+# ── Test & Debug ──────────────────────────────────
+# Puppeteer / Chrome test profiles (browser data directories)
+test-prof-*/
+test-profile*/
+test-headless-profile/
+scratch-user-data/
+
+# Chrome for Testing binary
+cft/
+
+# Temporary debug/test scripts
+check-*.js
+debug-*.js
+snap-*.js
+test-load-unpacked.js
+test-headless.js
+test-minimal.js
+test-parse-direct.js
+test-deep-ext.js
+
+# Debug screenshots at root level
+cft-extensions.png
+devmode_inspect.png
+ext-page-devmode.png
+ext-page.png
+
+# ── OS ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ───────────────────────────────────────
+.vscode/
+.idea/
+
+# ── Misc ─────────────────────────────────────────
+*.log
+.env
+.env.local
