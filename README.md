@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/logo.png" width="110" height="110" alt="AshxScrape Logo" style="border-radius: 24px;" />
+
 # AshxScrape
 
 **High-performance Manifest V3 Chrome extension for structured business data extraction from Google Maps search results.**
@@ -13,6 +15,7 @@
 [Key Features](#key-features) • [Installation](#installation) • [Workflow](#workflow) • [Data Schema](#data-schema) • [Architecture](#architecture) • [Security](#security--guardrails)
 
 </div>
+
 
 ---
 
@@ -240,8 +243,9 @@ ashxscrape/
 npm run dev
 
 # Run comprehensive test suites (Puppeteer validation)
-node test-phase456.js
+node tests/e2e.test.js
 ```
+
 
 ---
 

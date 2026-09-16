@@ -14,15 +14,13 @@ scratch-user-data/
 # Chrome for Testing binary
 cft/
 
-# Temporary debug/test scripts
+# Temporary debug/test scripts in root
 check-*.js
 debug-*.js
 snap-*.js
-test-load-unpacked.js
-test-headless.js
-test-minimal.js
-test-parse-direct.js
-test-deep-ext.js
+test-*.js
+!tests/
+
 
 # Debug screenshots at root level
 cft-extensions.png
