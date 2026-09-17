@@ -10,11 +10,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build](https://img.shields.io/badge/Build-Vite_5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Storage](https://img.shields.io/badge/Storage-IndexedDB-orange)](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+[![Docs](https://img.shields.io/badge/Docs-Architecture_Guide_(PDF)-red?logo=adobe-acrobat-reader&logoColor=white)](docs/AshxScrape_Complete_Architectural_Guide.pdf)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/aswinhub26/AshxScrape/pulls)
 
-[Key Features](#key-features) • [Installation](#installation) • [Workflow](#workflow) • [Data Schema](#data-schema) • [Architecture](#architecture) • [Security](#security--guardrails)
+[Key Features](#key-features) • [Installation](#installation) • [Workflow](#workflow) • [Data Schema](#data-schema) • [Architecture](#architecture) • [PDF Guide](docs/AshxScrape_Complete_Architectural_Guide.pdf) • [Security](#security--guardrails)
 
 </div>
+
 
 
 ---
