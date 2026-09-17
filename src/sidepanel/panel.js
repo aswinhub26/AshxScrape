@@ -21,6 +21,9 @@ const el = {
   btnToggleLog: document.getElementById('btnToggleLog'),
   btnToggleSettings: document.getElementById('btnToggleSettings'),
   btnToggleHistory: document.getElementById('btnToggleHistory'),
+  btnCloseSettings: document.getElementById('btnCloseSettings'),
+  historyChevron: document.getElementById('historyChevron'),
+  logChevron: document.getElementById('logChevron'),
   logDrawer: document.getElementById('logDrawer'),
   logContent: document.getElementById('logContent'),
   settingsDrawer: document.getElementById('settingsDrawer'),
@@ -418,7 +421,17 @@ el.btnClear.addEventListener('click', () => {
 });
 
 el.btnRefreshQuery.addEventListener('click', refreshPageStatus);
-el.btnToggleLog.addEventListener('click', () => el.logDrawer.classList.toggle('hidden'));
+
+// Collapsible Accordion: Console Log
+if (el.btnToggleLog) {
+  el.btnToggleLog.addEventListener('click', () => {
+    if (!el.logDrawer) return;
+    const isHidden = el.logDrawer.classList.toggle('hidden');
+    if (el.logChevron) {
+      el.logChevron.classList.toggle('expanded', !isHidden);
+    }
+  });
+}
 
 // Export Triggers
 el.btnExportCsv.addEventListener('click', async () => {
@@ -513,18 +526,26 @@ if (el.btnDetailPass) {
 if (el.btnToggleSettings) {
   el.btnToggleSettings.addEventListener('click', () => {
     if (el.settingsDrawer) el.settingsDrawer.classList.toggle('hidden');
-    if (el.historyDrawer) el.historyDrawer.classList.add('hidden');
-    if (el.logDrawer) el.logDrawer.classList.add('hidden');
   });
 }
 
-// History Drawer Toggle
+if (el.btnCloseSettings) {
+  el.btnCloseSettings.addEventListener('click', () => {
+    if (el.settingsDrawer) el.settingsDrawer.classList.add('hidden');
+  });
+}
+
+// Collapsible Accordion: Job History
 if (el.btnToggleHistory) {
   el.btnToggleHistory.addEventListener('click', async () => {
-    if (el.historyDrawer) el.historyDrawer.classList.toggle('hidden');
-    if (el.settingsDrawer) el.settingsDrawer.classList.add('hidden');
-    if (el.logDrawer) el.logDrawer.classList.add('hidden');
-    await renderJobHistory();
+    if (!el.historyDrawer) return;
+    const isHidden = el.historyDrawer.classList.toggle('hidden');
+    if (el.historyChevron) {
+      el.historyChevron.classList.toggle('expanded', !isHidden);
+    }
+    if (!isHidden) {
+      await renderJobHistory();
+    }
   });
 }
 
@@ -628,6 +649,55 @@ function checkForBlockSignals() {
   });
 }
 
+// === iOS 26 Liquid Glass Interactive Physics & Effects ===
+
+/**
+ * Water Ripple effect for buttons and clickable surfaces
+ */
+function initWaterRipple() {
+  document.addEventListener('pointerdown', (e) => {
+    const target = e.target.closest('.ripple-surface, .btn, .filter-chip');
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const diameter = Math.max(rect.width, rect.height) * 1.6;
+    const radius = diameter / 2;
+
+    ripple.className = 'ripple-pulse';
+    ripple.style.width = `${diameter}px`;
+    ripple.style.height = `${diameter}px`;
+    ripple.style.left = `${e.clientX - rect.left - radius}px`;
+    ripple.style.top = `${e.clientY - rect.top - radius}px`;
+
+    const oldRipple = target.querySelector('.ripple-pulse');
+    if (oldRipple) oldRipple.remove();
+
+    target.appendChild(ripple);
+
+    setTimeout(() => {
+      if (ripple.parentNode) ripple.remove();
+    }, 700);
+  });
+}
+
+/**
+ * Liquid light hover tracking following the cursor
+ */
+function initLiquidHoverTracking() {
+  document.addEventListener('mousemove', (e) => {
+    const target = e.target.closest('.liquid-track, .stat-card, .btn');
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    target.style.setProperty('--mouse-x', `${x}%`);
+    target.style.setProperty('--mouse-y', `${y}%`);
+  });
+}
+
 // Expose for automated benchmarking and testing
 window.testSetRows = (rows) => {
   collectedRows = rows || [];
@@ -660,9 +730,13 @@ openDatabase().then(() => {
 
   loadSettings();
   checkForBlockSignals();
+  initWaterRipple();
+  initLiquidHoverTracking();
   refreshPageStatus();
 }).catch(err => {
   log('IndexedDB init error: ' + err.message, 'error');
+  initWaterRipple();
+  initLiquidHoverTracking();
   refreshPageStatus();
 });
 

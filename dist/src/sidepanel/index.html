@@ -6,144 +6,215 @@
   <title>AshxScrape</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-Dx887fSE.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DnAfybe6.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="./assets/index-rw61bklK.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-OxWMNZP6.css">
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="app-header">
-    <div class="brand-row">
-      <div class="brand-title">
-        <img src="/icons/icon48.png" alt="AshxScrape Logo" class="brand-logo">
-        <span>AshxScrape</span>
-        <span class="brand-badge">MV3</span>
+  <!-- Ambient Background Orbs -->
+  <div class="ambient-glow cyan-glow"></div>
+  <div class="ambient-glow violet-glow"></div>
+
+  <div class="app-container">
+    <!-- Frosted Glass Header -->
+    <header class="app-header">
+      <div class="brand-row">
+        <div class="brand-title">
+          <img src="/icons/icon48.png" alt="AshxScrape Logo" class="brand-logo">
+          <span>AshxScrape</span>
+          <span class="brand-badge">MV3</span>
+        </div>
+
+        <div id="stateBadge" class="state-chip state-idle">Idle</div>
       </div>
 
-      <div id="stateBadge" class="state-chip state-idle">Idle</div>
-    </div>
-    <div class="query-row">
-      <div class="query-info">
-        <span class="query-label">QUERY</span>
-        <span id="detectedQuery" class="query-text">Detecting active tab...</span>
+      <div class="query-row">
+        <div class="query-info">
+          <span class="query-label">QUERY</span>
+          <span id="detectedQuery" class="query-text">Detecting active tab...</span>
+        </div>
+        <div class="header-actions">
+          <button id="btnRefreshQuery" class="btn btn-icon ripple-surface liquid-track" title="Refresh active tab query">🔄</button>
+          <button id="btnToggleSettings" class="btn btn-icon ripple-surface liquid-track" title="Settings">⚙️</button>
+        </div>
       </div>
-      <div class="header-actions">
-        <button id="btnRefreshQuery" class="btn btn-icon" title="Refresh active tab query">🔄</button>
-        <button id="btnToggleHistory" class="btn btn-icon" title="Job History">📂</button>
-        <button id="btnToggleSettings" class="btn btn-icon" title="Settings">⚙️</button>
+    </header>
+
+    <!-- Notice Banner -->
+    <div id="noticeBanner" class="notice-banner hidden">
+      <span id="noticeIcon">⚠️</span>
+      <span id="noticeText">Please open a Google Maps search page to harvest listings.</span>
+    </div>
+
+    <!-- Action Deck / Primary Controls -->
+    <div class="control-bar">
+      <button id="btnStart" class="btn btn-primary ripple-surface liquid-track" title="Start harvesting">▶ Start</button>
+      <button id="btnPause" class="btn ripple-surface liquid-track" disabled title="Pause / Resume">⏸ Pause</button>
+      <button id="btnStop" class="btn btn-danger ripple-surface liquid-track" disabled title="Stop harvest">⏹ Stop</button>
+      <button id="btnClear" class="btn ripple-surface liquid-track" title="Clear collected results">🗑 Clear</button>
+      <button id="btnDetailPass" class="btn btn-secondary ripple-surface liquid-track" title="Run detail pass to enrich addresses, hours, and more" disabled>🔍 Detail</button>
+    </div>
+
+    <!-- 2-Column Live Metrics Grid -->
+    <section class="stats-grid-2col" aria-label="Harvest Telemetry">
+      <!-- Card 1: Collected -->
+      <article class="stat-card liquid-track">
+        <div class="stat-card-header">
+          <span class="stat-label">Collected</span>
+          <span class="stat-icon">📍</span>
+        </div>
+        <div class="stat-card-body">
+          <span id="statCollected" class="stat-val">0</span>
+          <span class="stat-tag">Places</span>
+        </div>
+      </article>
+
+      <!-- Card 2: Phone Found -->
+      <article class="stat-card liquid-track">
+        <div class="stat-card-header">
+          <span class="stat-label">Phone Found</span>
+          <span class="stat-icon">📞</span>
+        </div>
+        <div class="stat-card-body">
+          <span id="statPhone" class="stat-val">0</span>
+          <span class="stat-tag">Contact</span>
+        </div>
+      </article>
+
+      <!-- Card 3: Website Live -->
+      <article class="stat-card liquid-track">
+        <div class="stat-card-header">
+          <span class="stat-label">Website Live</span>
+          <span class="stat-icon">🌐</span>
+        </div>
+        <div class="stat-card-body">
+          <span id="statWebsite" class="stat-val">0</span>
+          <span class="stat-tag">Online</span>
+        </div>
+      </article>
+
+      <!-- Card 4: No Website (Lead Opp) -->
+      <article class="stat-card liquid-track">
+        <div class="stat-card-header">
+          <span class="stat-label">No Website</span>
+          <span class="stat-icon">💎</span>
+        </div>
+        <div class="stat-card-body">
+          <span id="statNoWebsite" class="stat-val stat-money">0</span>
+          <span class="stat-tag money-tag">Lead Opp</span>
+        </div>
+      </article>
+
+      <!-- Card 5: Errors / Clean Pass -->
+      <article class="stat-card liquid-track">
+        <div class="stat-card-header">
+          <span class="stat-label">Errors</span>
+          <span class="stat-icon">🛡️</span>
+        </div>
+        <div class="stat-card-body">
+          <span id="statErrors" class="stat-val">0</span>
+          <span class="stat-tag">Clean</span>
+        </div>
+      </article>
+
+      <!-- Card 6: Detailed Pass -->
+      <article class="stat-card liquid-track" id="statDetailedCard">
+        <div class="stat-card-header">
+          <span class="stat-label">Detailed</span>
+          <span class="stat-icon">⚡</span>
+        </div>
+        <div class="stat-card-body">
+          <span id="statDetailed" class="stat-val">0</span>
+          <span class="stat-tag">Enriched</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <input type="text" id="filterText" class="filter-input" placeholder="Search name / category..." style="flex: 1; min-width: 120px;">
+      <select id="filterMinRating" class="filter-input" style="width: 88px;">
+        <option value="0">All Stars</option>
+        <option value="4.0">★ 4.0+</option>
+        <option value="4.5">★ 4.5+</option>
+        <option value="4.8">★ 4.8+</option>
+      </select>
+      <button id="filterNoWeb" class="filter-chip ripple-surface" title="Show only leads without a website">🌐 No Web</button>
+      <button id="filterHasPhone" class="filter-chip ripple-surface" title="Show only leads with a phone">📞 Phone</button>
+      <button id="filterHasWeb" class="filter-chip ripple-surface" title="Show only leads with a website">🌐 Web</button>
+    </div>
+
+    <!-- Main View / Table Area -->
+    <main class="main-view" id="mainView">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">📍</div>
+        <div class="empty-title">Ready to harvest</div>
+        <div class="empty-desc">Open a Google Maps search (e.g. <i>dentists in Chennai</i>) and click <b>Start</b>.</div>
       </div>
-    </div>
-  </header>
+      <div id="tableContainer" class="table-container" style="display: none;"></div>
+    </main>
 
-  <!-- Notice Banner -->
-  <div id="noticeBanner" class="notice-banner hidden">
-    <span id="noticeIcon">⚠️</span>
-    <span id="noticeText">Please open a Google Maps search page to harvest listings.</span>
-  </div>
+    <!-- Collapsible Accordion: Job History -->
+    <section class="accordion-section" aria-label="Job History Accordion">
+      <button id="btnToggleHistory" class="accordion-header ripple-surface" title="Toggle Job History">
+        <span class="accordion-title">
+          <span>📂</span>
+          <span>Job History</span>
+        </span>
+        <span id="historyChevron" class="accordion-chevron">▼</span>
+      </button>
+      <div id="historyDrawer" class="accordion-content history-drawer hidden">
+        <div id="historyList" class="history-list">
+          <div class="history-empty">Loading history...</div>
+        </div>
+      </div>
+    </section>
 
-  <!-- Primary Controls -->
-  <div class="control-bar">
-    <button id="btnStart" class="btn btn-primary" title="Start harvesting">▶ Start</button>
-    <button id="btnPause" class="btn" disabled title="Pause / Resume">⏸ Pause</button>
-    <button id="btnStop" class="btn btn-danger" disabled title="Stop harvest">⏹ Stop</button>
-    <button id="btnClear" class="btn" title="Clear collected results">🗑 Clear</button>
-    <button id="btnDetailPass" class="btn btn-secondary" title="Run detail pass to enrich addresses, hours, and more" disabled>🔍 Detail</button>
-    <div style="flex: 1;"></div>
-    <button id="btnToggleLog" class="btn btn-icon" title="Toggle Log Drawer">📜</button>
-  </div>
+    <!-- Collapsible Accordion: Console Log -->
+    <section class="accordion-section" aria-label="Console Log Accordion">
+      <button id="btnToggleLog" class="accordion-header ripple-surface" title="Toggle Console Log">
+        <span class="accordion-title">
+          <span>📜</span>
+          <span>Runtime Console</span>
+        </span>
+        <span id="logChevron" class="accordion-chevron">▼</span>
+      </button>
+      <div id="logDrawer" class="accordion-content log-drawer hidden">
+        <div id="logContent">
+          <div class="log-line"><span class="log-time">00:00:00</span> <span class="log-info">[System]</span> AshxScrape panel loaded.</div>
+        </div>
+      </div>
+    </section>
 
-  <!-- Live Stats Row -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <span class="stat-label">Collected</span>
-      <span id="statCollected" class="stat-val">0</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Phone</span>
-      <span id="statPhone" class="stat-val">0</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Website</span>
-      <span id="statWebsite" class="stat-val">0</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">No Web</span>
-      <span id="statNoWebsite" class="stat-val stat-money">0</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Errors</span>
-      <span id="statErrors" class="stat-val">0</span>
-    </div>
-    <div class="stat-card" id="statDetailedCard" style="display:none;">
-      <span class="stat-label">Detailed</span>
-      <span id="statDetailed" class="stat-val">0</span>
-    </div>
-  </div>
+    <!-- Export Footer Bar -->
+    <footer class="export-bar">
+      <div id="exportStatus" class="export-count">0 items ready</div>
+      <div class="export-actions">
+        <button id="btnCopyTsv" class="btn ripple-surface liquid-track" title="Copy to clipboard for Sheets/Excel">Copy</button>
+        <button id="btnExportCsv" class="btn btn-primary ripple-surface liquid-track" title="Export CSV file">CSV</button>
+        <button id="btnExportXlsx" class="btn ripple-surface liquid-track" title="Export Excel XLSX">XLSX</button>
+        <button id="btnExportJson" class="btn ripple-surface liquid-track" title="Export JSON">JSON</button>
+      </div>
+    </footer>
 
-  <!-- Filter Bar -->
-  <div class="filter-bar">
-    <input type="text" id="filterText" class="filter-input" placeholder="Search name / category..." style="width: 140px;">
-    <select id="filterMinRating" class="filter-input" style="width: 85px;">
-      <option value="0">All Stars</option>
-      <option value="4.0">★ 4.0+</option>
-      <option value="4.5">★ 4.5+</option>
-      <option value="4.8">★ 4.8+</option>
-    </select>
-    <button id="filterNoWeb" class="filter-chip" title="Show only leads without a website">🌐 No Website</button>
-    <button id="filterHasPhone" class="filter-chip" title="Show only leads with a phone">📞 Phone</button>
-    <button id="filterHasWeb" class="filter-chip" title="Show only leads with a website">🌐 With Web</button>
-  </div>
-
-  <!-- Main View / Table Area -->
-  <main class="main-view" id="mainView">
-    <div id="emptyState" class="empty-state">
-      <div class="empty-icon">📍</div>
-      <div class="empty-title">Ready to harvest</div>
-      <div class="empty-desc">Open a Google Maps search (e.g. <i>dentists in Chennai</i>) and click <b>Start</b>.</div>
-    </div>
-    <div id="tableContainer" class="table-container" style="display: none;"></div>
-  </main>
-
-  <!-- Export Bar -->
-  <footer class="export-bar">
-    <div id="exportStatus" class="export-count">0 items ready</div>
-    <div class="export-actions">
-      <button id="btnCopyTsv" class="btn" title="Copy to clipboard for Sheets/Excel">Copy</button>
-      <button id="btnExportCsv" class="btn btn-primary" title="Export CSV file">CSV</button>
-      <button id="btnExportXlsx" class="btn" title="Export Excel XLSX">XLSX</button>
-      <button id="btnExportJson" class="btn" title="Export JSON">JSON</button>
-    </div>
-  </footer>
-
-  <!-- Log Drawer -->
-  <div id="logDrawer" class="log-drawer">
-    <div id="logContent">
-      <div class="log-line"><span class="log-time">00:00:00</span> <span class="log-info">[System]</span> AshxScrape panel loaded.</div>
-    </div>
-  </div>
-
-  <!-- Settings Drawer -->
-  <div id="settingsDrawer" class="settings-drawer hidden">
-    <div class="drawer-header">⚙️ Settings</div>
-    <label class="setting-row">
-      <span class="setting-label">Max Results</span>
-      <input type="number" id="settingMaxResults" class="filter-input" value="200" min="10" max="2000" style="width: 70px;">
-    </label>
-    <label class="setting-row">
-      <span class="setting-label">Auto Detail Pass after harvest</span>
-      <input type="checkbox" id="settingDetailPass">
-    </label>
-    <div class="setting-note">
-      Detail pass clicks each result to extract full address, hours, price level, and plus code. Slower but produces richer data.
-    </div>
-  </div>
-
-  <!-- Job History Drawer -->
-  <div id="historyDrawer" class="history-drawer hidden">
-    <div class="drawer-header">📂 Job History</div>
-    <div id="historyList" class="history-list">
-      <div class="history-empty">Loading...</div>
+    <!-- Settings Modal Drawer -->
+    <div id="settingsDrawer" class="settings-drawer hidden">
+      <div class="drawer-header">
+        <span>⚙️ Settings</span>
+        <button id="btnCloseSettings" class="btn btn-icon ripple-surface" style="width: 24px; height: 24px; font-size: 11px;">✕</button>
+      </div>
+      <label class="setting-row">
+        <span>Max Results</span>
+        <input type="number" id="settingMaxResults" class="filter-input" value="200" min="10" max="2000" style="width: 70px;">
+      </label>
+      <label class="setting-row">
+        <span>Auto Detail Pass</span>
+        <input type="checkbox" id="settingDetailPass">
+      </label>
+      <div class="setting-note">
+        Detail pass clicks each result to extract full address, hours, price level, and plus code.
+      </div>
     </div>
   </div>
 
