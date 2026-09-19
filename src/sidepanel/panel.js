@@ -461,35 +461,42 @@ function setExportActiveButton(clickedBtn, temporaryLabel, originalLabel) {
 
 // Export Triggers
 el.btnExportCsv.addEventListener('click', async () => {
-  const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
-  if (filtered.length === 0) {
-    log('No records matching current filters to export.', 'warn');
-    return;
+  let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+  if (targetRows.length === 0) {
+    if (collectedRows.length === 0) {
+      log('No records to export. Click Start to harvest places first.', 'warn');
+      return;
+    }
+    log(`Active filter yielded 0 items. Exporting all ${collectedRows.length} collected records.`, 'info');
+    targetRows = collectedRows;
   }
 
   setExportActiveButton(el.btnExportCsv, '✓ CSV', 'CSV');
   const query = el.detectedQuery.textContent || 'leads';
-  const csvContent = generateCsv(filtered);
+  const csvContent = generateCsv(targetRows);
   const filename = generateFilename(query, 'csv');
 
   await downloadFile(csvContent, filename, 'text/csv;charset=utf-8');
-  if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${filtered.length} items)`;
-  log(`Exported ${filtered.length} rows to ${filename}`, 'success');
+  if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${targetRows.length} items)`;
+  log(`Exported ${targetRows.length} rows to ${filename}`, 'success');
 });
 
 el.btnCopyTsv.addEventListener('click', async () => {
-  const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
-  if (filtered.length === 0) {
-    log('No records to copy.', 'warn');
-    return;
+  let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+  if (targetRows.length === 0) {
+    if (collectedRows.length === 0) {
+      log('No records to copy. Click Start to harvest places first.', 'warn');
+      return;
+    }
+    targetRows = collectedRows;
   }
 
   setExportActiveButton(el.btnCopyTsv, '✓ Copied', 'Copy');
-  const tsvContent = generateTsv(filtered);
+  const tsvContent = generateTsv(targetRows);
   try {
     await navigator.clipboard.writeText(tsvContent);
-    if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${filtered.length} items as TSV`;
-    log(`Copied ${filtered.length} rows to clipboard as TSV (paste directly into Google Sheets/Excel).`, 'success');
+    if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${targetRows.length} items as TSV`;
+    log(`Copied ${targetRows.length} rows to clipboard as TSV (paste directly into Google Sheets/Excel).`, 'success');
   } catch (err) {
     log('Failed to copy to clipboard: ' + err.message, 'error');
   }
@@ -498,19 +505,22 @@ el.btnCopyTsv.addEventListener('click', async () => {
 // Copy Executive Lead Analytics Summary
 if (el.btnCopySummary) {
   el.btnCopySummary.addEventListener('click', async () => {
-    const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
-    if (filtered.length === 0) {
-      log('No records to summarize. Collect places first.', 'warn');
-      return;
+    let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+    if (targetRows.length === 0) {
+      if (collectedRows.length === 0) {
+        log('No records to summarize. Collect places first.', 'warn');
+        return;
+      }
+      targetRows = collectedRows;
     }
 
     setExportActiveButton(el.btnCopySummary, '✓ Copied', 'Summary');
     const query = el.detectedQuery.textContent || 'Google Maps Leads';
-    const summaryMd = generateLeadSummary(filtered, query);
+    const summaryMd = generateLeadSummary(targetRows, query);
     try {
       await navigator.clipboard.writeText(summaryMd);
       if (el.exportStatus) el.exportStatus.textContent = `✓ Copied Executive Summary (Markdown)`;
-      log(`📋 Copied Lead Analytics Summary for ${filtered.length} places to clipboard (Markdown)!`, 'success');
+      log(`📋 Copied Lead Analytics Summary for ${targetRows.length} places to clipboard (Markdown)!`, 'success');
     } catch (err) {
       log('Failed to copy summary to clipboard: ' + err.message, 'error');
     }
@@ -520,21 +530,26 @@ if (el.btnCopySummary) {
 // XLSX Export
 if (el.btnExportXlsx) {
   el.btnExportXlsx.addEventListener('click', async () => {
-    const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
-    if (filtered.length === 0) {
-      log('No records matching current filters to export.', 'warn');
-      return;
+    let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+    if (targetRows.length === 0) {
+      if (collectedRows.length === 0) {
+        log('No records to export. Click Start to harvest places first.', 'warn');
+        return;
+      }
+      log(`Active filter yielded 0 items. Exporting all ${collectedRows.length} collected records.`, 'info');
+      targetRows = collectedRows;
     }
+
     setExportActiveButton(el.btnExportXlsx, '⏳ XLSX', 'XLSX');
     try {
       el.btnExportXlsx.disabled = true;
       const query = el.detectedQuery.textContent || 'leads';
-      const buffer = await generateXlsx(filtered, query);
+      const buffer = await generateXlsx(targetRows, query);
       const filename = generateFilename(query, 'xlsx');
       await downloadFile(buffer, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       setExportActiveButton(el.btnExportXlsx, '✓ XLSX', 'XLSX');
-      if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${filtered.length} items)`;
-      log(`Exported ${filtered.length} rows to ${filename}`, 'success');
+      if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${targetRows.length} items)`;
+      log(`Exported ${targetRows.length} rows to ${filename}`, 'success');
     } catch (err) {
       log('XLSX export error: ' + err.message, 'error');
     } finally {
@@ -546,20 +561,26 @@ if (el.btnExportXlsx) {
 // JSON Export
 if (el.btnExportJson) {
   el.btnExportJson.addEventListener('click', async () => {
-    const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
-    if (filtered.length === 0) {
-      log('No records matching current filters to export.', 'warn');
-      return;
+    let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+    if (targetRows.length === 0) {
+      if (collectedRows.length === 0) {
+        log('No records to export. Click Start to harvest places first.', 'warn');
+        return;
+      }
+      log(`Active filter yielded 0 items. Exporting all ${collectedRows.length} collected records.`, 'info');
+      targetRows = collectedRows;
     }
+
     setExportActiveButton(el.btnExportJson, '✓ JSON', 'JSON');
     const query = el.detectedQuery.textContent || 'leads';
-    const jsonContent = generateJson(filtered, query, currentJob?.id);
+    const jsonContent = generateJson(targetRows, query, currentJob?.id);
     const filename = generateFilename(query, 'json');
     await downloadFile(jsonContent, filename, 'application/json');
-    if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${filtered.length} items)`;
-    log(`Exported ${filtered.length} rows to ${filename}`, 'success');
+    if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${targetRows.length} items)`;
+    log(`Exported ${targetRows.length} rows to ${filename}`, 'success');
   });
 }
+
 
 
 // Detail Pass Button

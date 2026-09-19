@@ -78,8 +78,27 @@ export function parseCard(cardEl, query = '') {
     }
 
     // 5. Phone directly visible on card (if rendered)
-    const phoneEl = pick(card, SELECTORS.cardPhone);
-    const { phone, phoneRaw } = normalizePhone(phoneEl?.innerText || null);
+    let rawPhoneCandidate = null;
+    const phoneEl = pick(card, SELECTORS.cardPhone) || card.querySelector('a[href^="tel:"], button[data-item-id^="phone"], [data-tooltip*="phone" i], span[aria-label*="phone" i]');
+    if (phoneEl) {
+      rawPhoneCandidate = phoneEl.innerText || phoneEl.textContent || phoneEl.getAttribute('aria-label') || phoneEl.getAttribute('data-tooltip') || phoneEl.href?.replace(/^tel:/, '');
+    }
+
+    // Fallback: search text blocks in the card for phone number patterns (e.g. 098433 59065, 044 2621 1234)
+    if (!rawPhoneCandidate) {
+      const cardFullText = card.innerText || '';
+      const phoneMatch = cardFullText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}/);
+      if (phoneMatch && phoneMatch[0]) {
+        const cleanedCandidate = phoneMatch[0].replace(/[^\d+]/g, '');
+        // Validate sensible phone length (7-15 digits) and exclude review count (e.g. 1,884)
+        if (cleanedCandidate.length >= 7 && cleanedCandidate.length <= 15 && !cardFullText.includes(`(${phoneMatch[0]})`)) {
+          rawPhoneCandidate = phoneMatch[0];
+        }
+      }
+    }
+
+    const { phone, phoneRaw } = normalizePhone(rawPhoneCandidate || null);
+
 
     // 6. Website button/link directly on card (if rendered)
     let website = null;

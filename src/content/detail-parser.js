@@ -32,9 +32,14 @@ const DETAIL_SELECTORS = {
   // Phone
   phone: [
     'button[data-item-id^="phone:tel"] .Io6YTe',
-    'span[aria-label*="Phone"] .Io6YTe',
-    'div[data-tooltip="Copy phone number"] .Io6YTe'
+    'a[data-item-id^="phone:tel"] .Io6YTe',
+    'button[aria-label*="Phone" i] .Io6YTe',
+    'span[aria-label*="Phone" i] .Io6YTe',
+    'div[data-tooltip="Copy phone number"] .Io6YTe',
+    'button[data-tooltip*="phone" i] .Io6YTe',
+    'a[href^="tel:"]'
   ],
+
   // Opening hours block
   hours: [
     'table.WgFkxc',
