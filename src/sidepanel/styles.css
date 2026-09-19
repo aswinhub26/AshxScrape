@@ -763,8 +763,42 @@ html, body {
 
 .export-actions {
   display: flex;
-  gap: 5px;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
+.export-actions .btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  transition: all 0.25s var(--ease-spring);
+}
+
+.export-actions .btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.export-actions .btn.btn-primary,
+.export-actions .btn.active {
+  background: var(--primary-gradient) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 3px 12px rgba(10, 132, 255, 0.35) !important;
+  transform: scale(1.02);
+}
+
 
 /* ── Collapsible Accordions (History & Log Console) ──────────── */
 .accordion-section {

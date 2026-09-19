@@ -227,35 +227,55 @@ export function generateLeadSummary(rows, query = 'Leads') {
 }
 
 /**
- * Triggers file download via Blob URL
+ * Converts a Blob to a Base64 data URL for rock-solid downloads in Chrome side panels
+ */
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Triggers reliable file download across Chrome MV3 Side Panel & web contexts.
  */
 export async function downloadFile(content, filename, mimeType = 'text/csv;charset=utf-8') {
+  const blobParts = (content instanceof Uint8Array || content instanceof ArrayBuffer) ? [content] : [content];
+  const blob = new Blob(blobParts, { type: mimeType });
+  const dataUrl = await blobToDataUrl(blob);
 
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-
+  // 1. Try Chrome Downloads API with Data URL (works without blob isolation issues)
   if (typeof chrome !== 'undefined' && chrome.downloads?.download) {
     try {
       await chrome.downloads.download({
-        url,
-        filename,
-        saveAs: true
+        url: dataUrl,
+        filename: filename,
+        saveAs: false
       });
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-      return;
+      return true;
     } catch (e) {
-      // Fallback to DOM anchor click
+      console.warn('[AshxScrape Export] chrome.downloads fallback to DOM click:', e.message);
     }
   }
 
+  // 2. Direct HTML5 Anchor Click fallback
   const a = document.createElement('a');
-  a.href = url;
+  a.href = dataUrl;
   a.download = filename;
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  setTimeout(() => {
+    if (a.parentNode) {
+      a.parentNode.removeChild(a);
+    }
+  }, 1000);
+
+  return true;
 }
+
 
 
 

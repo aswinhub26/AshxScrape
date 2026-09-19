@@ -435,6 +435,30 @@ if (el.btnToggleLog) {
   });
 }
 
+/**
+ * Sets the active highlighted export button (switches the blue pill highlight dynamically)
+ */
+function setExportActiveButton(clickedBtn, temporaryLabel, originalLabel) {
+  const exportButtons = [el.btnCopySummary, el.btnCopyTsv, el.btnExportCsv, el.btnExportXlsx, el.btnExportJson].filter(Boolean);
+  
+  // Remove primary highlight from all buttons
+  exportButtons.forEach(btn => {
+    btn.classList.remove('btn-primary', 'active');
+  });
+
+  // Highlight the clicked button
+  if (clickedBtn) {
+    clickedBtn.classList.add('btn-primary', 'active');
+    if (temporaryLabel) {
+      const origText = originalLabel || clickedBtn.textContent;
+      clickedBtn.textContent = temporaryLabel;
+      setTimeout(() => {
+        clickedBtn.textContent = origText;
+      }, 1400);
+    }
+  }
+}
+
 // Export Triggers
 el.btnExportCsv.addEventListener('click', async () => {
   const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
@@ -443,11 +467,13 @@ el.btnExportCsv.addEventListener('click', async () => {
     return;
   }
 
+  setExportActiveButton(el.btnExportCsv, '✓ CSV', 'CSV');
   const query = el.detectedQuery.textContent || 'leads';
   const csvContent = generateCsv(filtered);
   const filename = generateFilename(query, 'csv');
 
   await downloadFile(csvContent, filename, 'text/csv;charset=utf-8');
+  if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${filtered.length} items)`;
   log(`Exported ${filtered.length} rows to ${filename}`, 'success');
 });
 
@@ -458,9 +484,11 @@ el.btnCopyTsv.addEventListener('click', async () => {
     return;
   }
 
+  setExportActiveButton(el.btnCopyTsv, '✓ Copied', 'Copy');
   const tsvContent = generateTsv(filtered);
   try {
     await navigator.clipboard.writeText(tsvContent);
+    if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${filtered.length} items as TSV`;
     log(`Copied ${filtered.length} rows to clipboard as TSV (paste directly into Google Sheets/Excel).`, 'success');
   } catch (err) {
     log('Failed to copy to clipboard: ' + err.message, 'error');
@@ -476,17 +504,18 @@ if (el.btnCopySummary) {
       return;
     }
 
+    setExportActiveButton(el.btnCopySummary, '✓ Copied', 'Summary');
     const query = el.detectedQuery.textContent || 'Google Maps Leads';
     const summaryMd = generateLeadSummary(filtered, query);
     try {
       await navigator.clipboard.writeText(summaryMd);
+      if (el.exportStatus) el.exportStatus.textContent = `✓ Copied Executive Summary (Markdown)`;
       log(`📋 Copied Lead Analytics Summary for ${filtered.length} places to clipboard (Markdown)!`, 'success');
     } catch (err) {
       log('Failed to copy summary to clipboard: ' + err.message, 'error');
     }
   });
 }
-
 
 // XLSX Export
 if (el.btnExportXlsx) {
@@ -496,19 +525,20 @@ if (el.btnExportXlsx) {
       log('No records matching current filters to export.', 'warn');
       return;
     }
+    setExportActiveButton(el.btnExportXlsx, '⏳ XLSX', 'XLSX');
     try {
       el.btnExportXlsx.disabled = true;
-      el.btnExportXlsx.textContent = '⏳ XLSX';
       const query = el.detectedQuery.textContent || 'leads';
       const buffer = await generateXlsx(filtered, query);
       const filename = generateFilename(query, 'xlsx');
       await downloadFile(buffer, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      setExportActiveButton(el.btnExportXlsx, '✓ XLSX', 'XLSX');
+      if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${filtered.length} items)`;
       log(`Exported ${filtered.length} rows to ${filename}`, 'success');
     } catch (err) {
       log('XLSX export error: ' + err.message, 'error');
     } finally {
       el.btnExportXlsx.disabled = false;
-      el.btnExportXlsx.textContent = 'XLSX';
     }
   });
 }
@@ -521,13 +551,16 @@ if (el.btnExportJson) {
       log('No records matching current filters to export.', 'warn');
       return;
     }
+    setExportActiveButton(el.btnExportJson, '✓ JSON', 'JSON');
     const query = el.detectedQuery.textContent || 'leads';
     const jsonContent = generateJson(filtered, query, currentJob?.id);
     const filename = generateFilename(query, 'json');
     await downloadFile(jsonContent, filename, 'application/json');
+    if (el.exportStatus) el.exportStatus.textContent = `✓ Exported ${filename} (${filtered.length} items)`;
     log(`Exported ${filtered.length} rows to ${filename}`, 'success');
   });
 }
+
 
 // Detail Pass Button
 if (el.btnDetailPass) {
