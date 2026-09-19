@@ -1,0 +1,37 @@
+name: Bug Report
+description: Create a report to help us fix a bug or broken selector
+title: "[BUG] "
+labels: ["bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting an issue with AshxScrape! Please provide the details below.
+  - type: input
+    id: query
+    attributes:
+      label: Search Query
+      description: What search query were you running on Google Maps?
+      placeholder: e.g. "dental clinics in Austin, TX"
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected vs Actual Behavior
+      description: Describe what you expected to happen versus what actually happened.
+    validations:
+      required: true
+  - type: input
+    id: chrome-version
+    attributes:
+      label: Chrome Version & OS
+      placeholder: e.g. Chrome 137 on Windows 11 / macOS Sequoia
+    validations:
+      required: true
+  - type: textarea
+    id: console-logs
+    attributes:
+      label: Console Logs / Error Messages
+      description: Paste any error messages from the DevTools console or the extension Log Drawer.
+      render: text

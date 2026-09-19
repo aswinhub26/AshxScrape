@@ -732,11 +732,43 @@ openDatabase().then(() => {
   checkForBlockSignals();
   initWaterRipple();
   initLiquidHoverTracking();
+  initKeyboardShortcuts();
   refreshPageStatus();
 }).catch(err => {
   log('IndexedDB init error: ' + err.message, 'error');
   initWaterRipple();
   initLiquidHoverTracking();
+  initKeyboardShortcuts();
   refreshPageStatus();
 });
+
+/**
+ * Productivity keyboard shortcuts
+ */
+function initKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Escape: close open drawers
+    if (e.key === 'Escape') {
+      if (el.settingsDrawer && !el.settingsDrawer.classList.contains('hidden')) {
+        el.settingsDrawer.classList.add('hidden');
+      }
+      if (el.historyDrawer && !el.historyDrawer.classList.contains('hidden')) {
+        el.historyDrawer.classList.add('hidden');
+      }
+      if (el.logDrawer && !el.logDrawer.classList.contains('hidden')) {
+        el.logDrawer.classList.add('hidden');
+      }
+    }
+
+    // Ctrl+F / Cmd+F: focus lead filter search
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      if (el.filterText) {
+        e.preventDefault();
+        el.filterText.focus();
+        el.filterText.select();
+      }
+    }
+  });
+}
+
 

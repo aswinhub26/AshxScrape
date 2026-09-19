@@ -4,8 +4,11 @@
   "description": "Google Maps Data Scraper Chrome MV3 Extension",
   "type": "module",
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "dev": "node build.js --watch",
+    "test": "node tests/e2e.test.js"
   },
+
   "dependencies": {
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },

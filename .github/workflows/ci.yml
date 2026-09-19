@@ -1,0 +1,41 @@
+name: Build & Validate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build Extension Bundle
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci || npm install
+
+    - name: Compile Extension (Vite Multi-Target)
+      run: npm run build
+
+    - name: Verify Distribution Artifacts
+      run: |
+        test -f dist/manifest.json
+        test -f dist/src/background/service-worker.js
+        test -f dist/src/content/index.js
+        test -f dist/src/sidepanel/index.html
+        test -f dist/icons/icon128.png
+        echo "All critical distribution files present."
