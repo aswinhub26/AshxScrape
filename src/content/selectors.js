@@ -76,12 +76,15 @@ export const SELECTORS = {
     'div[role="main"]'
   ],
 
-  // Detail Pane: Phone button/link
+  // Detail Pane: Phone button/link (strict business contact only)
   detailPhone: [
     'button[data-item-id^="phone:tel:"]',
     'a[data-item-id^="phone:tel:"]',
-    'button[data-item-id="phone"]',
-    'button[data-tooltip*="phone" i]',
+    'button[data-item-id*="phone:tel"]',
+    'button[data-tooltip="Copy phone number"]',
+    'div[data-tooltip="Copy phone number"]',
+    'button[aria-label^="Phone:" i]',
+    'button[aria-label^="Call:" i]',
     'a[href^="tel:"]'
   ],
 

@@ -22,30 +22,27 @@ const DETAIL_SELECTORS = {
     'div[data-item-id="address"] .Io6YTe',
     'button[data-item-id="address"]',
     'div[data-tooltip="Copy address"] .Io6YTe',
-    'button[aria-label*="ddress" i] .Io6YTe',
     'button[aria-label*="Address:" i]',
+    'button[aria-label*="address" i] .Io6YTe',
     '.rogA2c .Io6YTe'
   ],
   // Website link
   website: [
     'a[data-item-id="authority"] .Io6YTe',
     'a[data-item-id="authority"]',
-    'a[aria-label*="ebsite" i] .Io6YTe',
+    'a[aria-label*="website" i] .Io6YTe',
     'a[data-tooltip="Open website"] .Io6YTe',
     'a[data-item-id="web"]'
   ],
-  // Phone
+  // Strict Phone button/link
   phone: [
-    'button[data-item-id^="phone:tel"] .Io6YTe',
-    'button[data-item-id^="phone:tel"]',
-    'a[data-item-id^="phone:tel"] .Io6YTe',
-    'a[data-item-id^="phone:tel"]',
-    'button[aria-label*="Phone" i] .Io6YTe',
-    'button[aria-label*="Phone" i]',
-    'span[aria-label*="Phone" i] .Io6YTe',
-    'div[data-tooltip="Copy phone number"] .Io6YTe',
-    'button[data-tooltip*="phone" i] .Io6YTe',
-    'button[data-tooltip*="phone" i]',
+    'button[data-item-id^="phone:tel:"]',
+    'a[data-item-id^="phone:tel:"]',
+    'button[data-item-id*="phone:tel"]',
+    'button[data-tooltip="Copy phone number"]',
+    'div[data-tooltip="Copy phone number"]',
+    'button[aria-label^="Phone:" i]',
+    'button[aria-label^="Call:" i]',
     'a[href^="tel:"]'
   ],
 
@@ -105,17 +102,13 @@ function pickDetail(selector) {
 
 /**
  * Extracts opening hours from the detail panel table.
- * Returns a compact string like: "Mon–Fri: 9am–6pm; Sat: 10am–4pm; Sun: Closed"
  */
 function extractHours() {
-  // Try to find the hours table
   const table = pickDetail(DETAIL_SELECTORS.hours);
   if (!table) {
-    // Fallback: look for aria-label on hours button
     const btn = document.querySelector('button[aria-label*="hours"]');
     if (btn) {
       const aria = btn.getAttribute('aria-label') || '';
-      // Extract text like "Tuesday, 9 AM to 9 PM" from aria-label
       return cleanText(aria.replace(/^(Hours|Opening hours)[:\s]*/i, ''));
     }
     return null;
@@ -137,13 +130,12 @@ function extractHours() {
 }
 
 /**
- * Extracts price level from detail panel (e.g. "$$" → 2)
+ * Extracts price level from detail panel
  */
 function extractPriceLevel() {
   const el = pickDetail(DETAIL_SELECTORS.priceLevel);
   if (!el) return null;
   const aria = el.getAttribute('aria-label') || el.innerText || '';
-  // Match patterns like "Price: $$$", "Moderately expensive", or just "$$"
   const moneyMatch = aria.match(/(\$+)/);
   if (moneyMatch) return moneyMatch[1];
   if (aria.toLowerCase().includes('inexpensive')) return '$';
@@ -154,14 +146,13 @@ function extractPriceLevel() {
 
 /**
  * Scrapes all extractable fields from the currently-open place detail panel.
- * Call AFTER clicking on a card and waiting for the panel to load.
  */
 export function scrapeDetailPanel() {
   const result = {};
 
   // Address
   const addrEl = pickDetail(DETAIL_SELECTORS.address);
-  result.address = cleanText(addrEl?.innerText || addrEl?.textContent || addrEl?.getAttribute('aria-label')?.replace(/^Address:\s*/i, '')) || null;
+  result.address = cleanText(addrEl?.querySelector('.Io6YTe')?.innerText || addrEl?.innerText || addrEl?.textContent || addrEl?.getAttribute('aria-label')?.replace(/^Address:\s*/i, '')) || null;
 
   // Website
   const webEl = pickDetail(DETAIL_SELECTORS.website);
@@ -180,22 +171,25 @@ export function scrapeDetailPanel() {
     }
   }
 
-  // Phone: check dedicated buttons, tooltips, and tel links
+  // Phone: check dedicated business phone element (strictly excluding "Send to phone")
   let rawPhone = null;
-  const phoneEl = pickDetail(DETAIL_SELECTORS.phone) || document.querySelector('button[data-item-id^="phone"], a[data-item-id^="phone"], button[aria-label*="phone" i], a[href^="tel:"]');
-  if (phoneEl) {
-    rawPhone = phoneEl.innerText || phoneEl.textContent || phoneEl.getAttribute('aria-label') || phoneEl.getAttribute('data-item-id')?.replace(/^phone:tel:/, '') || phoneEl.href?.replace(/^tel:/, '');
+  const phoneBtn = pickDetail(DETAIL_SELECTORS.phone) || document.querySelector('button[data-item-id^="phone:tel:"], a[data-item-id^="phone:tel:"], [data-tooltip="Copy phone number"], button[aria-label^="Phone:" i], a[href^="tel:"]');
+  if (phoneBtn) {
+    rawPhone = phoneBtn.getAttribute('data-item-id')?.replace(/^phone:tel:/, '') ||
+               phoneBtn.querySelector('.Io6YTe')?.innerText ||
+               phoneBtn.innerText?.replace(/^[^\d+]+/g, '') ||
+               phoneBtn.getAttribute('aria-label')?.replace(/^Phone:\s*/i, '') ||
+               phoneBtn.href?.replace(/^tel:/, '');
   }
 
-  // Fallback: search detail pane text for phone number pattern if button missed
+  // Fallback: search .Io6YTe or .rogA2c elements for valid phone numbers
   if (!rawPhone) {
-    const panelEl = pickDetail(DETAIL_SELECTORS.panel) || document.body;
-    const panelText = panelEl.innerText || '';
-    const phoneMatch = panelText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}/);
-    if (phoneMatch && phoneMatch[0]) {
-      const cleanedCandidate = phoneMatch[0].replace(/[^\d+]/g, '');
-      if (cleanedCandidate.length >= 7 && cleanedCandidate.length <= 15) {
-        rawPhone = phoneMatch[0];
+    const ioElements = Array.from(document.querySelectorAll('.Io6YTe, .rogA2c'));
+    for (const el of ioElements) {
+      const txt = (el.innerText || '').trim();
+      if (/^(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}$/.test(txt) && txt.replace(/\D/g, '').length >= 7) {
+        rawPhone = txt;
+        break;
       }
     }
   }
@@ -233,21 +227,13 @@ export function scrapeDetailPanel() {
 
 /**
  * Performs a full detail-pass on a list of card elements.
- * For each card: clicks it, waits for detail panel, scrapes extra fields, merges into row, goes back.
- *
- * @param {HTMLElement[]} cards - Array of card DOM elements to detail-scrape
- * @param {Object[]} existingRows - The existing harvested rows (keyed by placeId)
- * @param {Object} options
- * @param {Function} options.onProgress - (updatedRow, index, total) callback
- * @param {Function} options.onStateChange - (state) callback
- * @param {Function} options.isPaused - () => bool
- * @param {Function} options.isStopped - () => bool
+ * For each card: queries live link, clicks it, scrapes extra fields, goes back.
  */
 export async function runDetailPass(cards, existingRows, options = {}) {
   const { onProgress, isPaused, isStopped } = options;
   const rowMap = new Map(existingRows.map(r => [r.placeId, r]));
   const results = [];
-  const total = cards.length;
+  const total = existingRows.length;
 
   for (let i = 0; i < total; i++) {
     // Pause/stop checks
@@ -256,17 +242,26 @@ export async function runDetailPass(cards, existingRows, options = {}) {
     }
     if (isStopped && isStopped()) break;
 
-    const card = cards[i];
-    if (!card) continue;
-
     try {
-      // Click the card link to open the detail panel
-      const link = card.querySelector('a.hfpxzc, a[href*="/maps/place/"]') || card;
+      // Find live card link from current DOM feed
+      const liveFeed = document.querySelector('div[role="feed"]');
+      if (!liveFeed) {
+        console.warn('[AshxScrape DetailParser] Feed element missing during detail pass.');
+        break;
+      }
+      const links = Array.from(liveFeed.querySelectorAll('a.hfpxzc, div.Nv2PK a[href*="/maps/place/"]'));
+      const link = links[i];
+      if (!link) {
+        console.log(`[AshxScrape DetailParser] No card link found at index ${i}. Reached rendered end.`);
+        break;
+      }
+
+      link.scrollIntoView({ block: 'center' });
       link.click();
 
-      // Wait for detail panel to load (look for address or hours section)
-      await waitForSelector('div[data-item-id="address"], button[data-item-id^="phone:tel"], button[data-item-id="oloc"], h1.DUwDvf', 5000);
-      await sleepJitter(800, 1400);
+      // Wait for detail panel to load
+      await waitForSelector('div[data-item-id="address"], button[data-item-id^="phone:tel:"], button[data-item-id="oloc"], h1.DUwDvf, .DUwDvf', 4000);
+      await sleepJitter(600, 1000);
 
       // Scrape the detail panel
       const detailData = scrapeDetailPanel();
@@ -275,13 +270,12 @@ export async function runDetailPass(cards, existingRows, options = {}) {
       const currentUrl = window.location.href;
       const { placeId } = extractPlaceIdentifiers(currentUrl);
 
-      // Find matching row and merge
+      // Match target row
       let targetRow = null;
       if (placeId) {
         targetRow = rowMap.get(placeId);
       }
       if (!targetRow) {
-        // Try name match from detail title
         const titleEl = document.querySelector('h1.DUwDvf, h1.fontHeadlineLarge');
         const panelName = cleanText(titleEl?.innerText);
         if (panelName) {
@@ -298,7 +292,6 @@ export async function runDetailPass(cards, existingRows, options = {}) {
       }
 
       if (targetRow) {
-        // Enrich targetRow with higher-fidelity detail pass data
         if (detailData.address) targetRow.address = detailData.address;
         if (detailData.area) targetRow.area = detailData.area;
         if (detailData.phone) {
@@ -318,16 +311,24 @@ export async function runDetailPass(cards, existingRows, options = {}) {
         if (onProgress) onProgress(targetRow, i + 1, total);
       }
 
-      // Navigate back using history API (fastest, no full page reload)
-      window.history.back();
-      await waitForSelector('div[role="feed"]', 5000);
-      await sleepJitter(1000, 2000);
+      // Return to feed via Google Maps Back button (fastest and most reliable)
+      const backBtn = document.querySelector('button[aria-label*="Back" i], button[jsaction*="pane.back"], button.hYBOP, button[data-tooltip*="Back" i]');
+      if (backBtn) {
+        backBtn.click();
+      } else {
+        window.history.back();
+      }
+
+      await waitForSelector('div[role="feed"]', 4000);
+      await sleepJitter(600, 1000);
 
     } catch (err) {
       console.warn(`[AshxScrape DetailParser] Error on card ${i + 1}:`, err.message);
-      // Try to recover by going back
-      try { window.history.back(); } catch (e) {}
-      await sleepJitter(1500, 2500);
+      try {
+        const backBtn = document.querySelector('button[aria-label*="Back" i], button.hYBOP');
+        if (backBtn) backBtn.click(); else window.history.back();
+      } catch (e) {}
+      await sleepJitter(1000, 1500);
     }
   }
 

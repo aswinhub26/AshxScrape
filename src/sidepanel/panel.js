@@ -327,13 +327,18 @@ function attachPortListeners(port) {
 
     if (message.action === MSG.JOB_COMPLETED) {
       flushDbBatch();
-      setState(JOB_STATE.DONE);
-      log(`Finished. Collected ${collectedRows.length} unique places.`, 'info');
-      log(`Job completed! Total: ${collectedRows.length} places.`, 'success');
-
-      const phones = collectedRows.filter(r => r.phone).length;
-      if (collectedRows.length > 0 && phones === 0) {
-        log('💡 Tip: Phone numbers for hospitality/cafes are hidden in list view. Click "🔍 Detail" to extract phone numbers & opening hours.', 'info');
+      const shouldAutoDetail = el.settingDetailPass ? el.settingDetailPass.checked : true;
+      if (shouldAutoDetail && collectedRows.length > 0) {
+        log(`Feed harvested (${collectedRows.length} places). Auto-extracting phone numbers & details...`, 'info');
+        setState(JOB_STATE.DETAILING);
+        safePostMessage(port, {
+          action: MSG.START_DETAIL_PASS,
+          payload: { rows: collectedRows }
+        });
+      } else {
+        setState(JOB_STATE.DONE);
+        log(`Finished. Collected ${collectedRows.length} unique places.`, 'info');
+        log(`Job completed! Total: ${collectedRows.length} places.`, 'success');
       }
     }
 
@@ -709,20 +714,24 @@ function loadSettings() {
       const s = JSON.parse(stored);
       if (el.settingMaxResults && s.maxResults) el.settingMaxResults.value = s.maxResults;
       if (el.settingDetailPass && s.autoDetailPass !== undefined) el.settingDetailPass.checked = s.autoDetailPass;
+    } else {
+      if (el.settingDetailPass) el.settingDetailPass.checked = true;
     }
-  } catch (e) {}
+  } catch (e) {
+    if (el.settingDetailPass) el.settingDetailPass.checked = true;
+  }
 }
 
 function saveSettings() {
   try {
     const settings = {
       maxResults: el.settingMaxResults ? parseInt(el.settingMaxResults.value, 10) || 200 : 200,
-      autoDetailPass: el.settingDetailPass ? el.settingDetailPass.checked : false
+      autoDetailPass: el.settingDetailPass ? el.settingDetailPass.checked : true
     };
     localStorage.setItem('ashxscrape_settings', JSON.stringify(settings));
     return settings;
   } catch (e) {
-    return { maxResults: 200, autoDetailPass: false };
+    return { maxResults: 200, autoDetailPass: true };
   }
 }
 
