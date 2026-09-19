@@ -2,7 +2,7 @@ import { MSG, JOB_STATE } from '../shared/messages.js';
 import { createJob, updateJob, saveRowsBatch, openDatabase, getAllJobs, getRowsForJob } from '../lib/db.js';
 import { VirtualTable } from './components/virtual-table.js';
 import { FilterBar } from './components/filter-bar.js';
-import { generateCsv, generateTsv, generateFilename, downloadFile, generateXlsx, generateJson } from '../lib/export.js';
+import { generateCsv, generateTsv, generateFilename, downloadFile, generateXlsx, generateJson, generateLeadSummary } from '../lib/export.js';
 
 
 // DOM Element References
@@ -40,6 +40,7 @@ const el = {
   emptyState: document.getElementById('emptyState'),
   tableContainer: document.getElementById('tableContainer'),
   exportStatus: document.getElementById('exportStatus'),
+  btnCopySummary: document.getElementById('btnCopySummary'),
   btnExportCsv: document.getElementById('btnExportCsv'),
   btnExportXlsx: document.getElementById('btnExportXlsx'),
   btnExportJson: document.getElementById('btnExportJson'),
@@ -50,6 +51,7 @@ const el = {
   filterHasPhone: document.getElementById('filterHasPhone'),
   filterHasWeb: document.getElementById('filterHasWeb')
 };
+
 
 
 // Panel State
@@ -464,6 +466,27 @@ el.btnCopyTsv.addEventListener('click', async () => {
     log('Failed to copy to clipboard: ' + err.message, 'error');
   }
 });
+
+// Copy Executive Lead Analytics Summary
+if (el.btnCopySummary) {
+  el.btnCopySummary.addEventListener('click', async () => {
+    const filtered = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+    if (filtered.length === 0) {
+      log('No records to summarize. Collect places first.', 'warn');
+      return;
+    }
+
+    const query = el.detectedQuery.textContent || 'Google Maps Leads';
+    const summaryMd = generateLeadSummary(filtered, query);
+    try {
+      await navigator.clipboard.writeText(summaryMd);
+      log(`📋 Copied Lead Analytics Summary for ${filtered.length} places to clipboard (Markdown)!`, 'success');
+    } catch (err) {
+      log('Failed to copy summary to clipboard: ' + err.message, 'error');
+    }
+  });
+}
+
 
 // XLSX Export
 if (el.btnExportXlsx) {

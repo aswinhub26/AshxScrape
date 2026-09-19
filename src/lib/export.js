@@ -176,9 +176,61 @@ export function generateFilename(query, ext = 'csv') {
 }
 
 /**
+ * Generates an executive lead analytics summary (Markdown format)
+ * Perfect for sharing campaign stats into Slack, Notion, or client reports.
+ */
+export function generateLeadSummary(rows, query = 'Leads') {
+  if (!rows || rows.length === 0) return '# Lead Campaign Summary\n\nNo records available.';
+
+  const total = rows.length;
+  const withPhone = rows.filter(r => r.phone).length;
+  const withWebsite = rows.filter(r => r.website).length;
+  const withoutWebsite = total - withWebsite;
+
+  const validRatings = rows.filter(r => typeof r.rating === 'number' && !isNaN(r.rating) && r.rating > 0);
+  const avgRating = validRatings.length > 0
+    ? (validRatings.reduce((sum, r) => sum + r.rating, 0) / validRatings.length).toFixed(2)
+    : 'N/A';
+
+  const totalReviews = rows.reduce((sum, r) => sum + (parseInt(r.reviewCount, 10) || 0), 0);
+
+  // Category breakdown
+  const categoryMap = {};
+  for (const r of rows) {
+    if (r.category) {
+      categoryMap[r.category] = (categoryMap[r.category] || 0) + 1;
+    }
+  }
+  const topCategories = Object.entries(categoryMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([cat, count]) => `- ${cat}: ${count} places (${Math.round((count / total) * 100)}%)`)
+    .join('\n');
+
+  return [
+    `# 📊 AshxScrape Lead Analytics — "${query}"`,
+    `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+    ``,
+    `### 📈 Key Metrics`,
+    `- **Total Verified Leads:** ${total}`,
+    `- **Phone Coverage:** ${withPhone} / ${total} (${Math.round((withPhone / total) * 100)}%)`,
+    `- **Web Presence:** ${withWebsite} / ${total} (${Math.round((withWebsite / total) * 100)}%)`,
+    `- **🔥 No-Website Opportunities:** ${withoutWebsite} (${Math.round((withoutWebsite / total) * 100)}%)`,
+    `- **Average Rating:** ★ ${avgRating} (from ${totalReviews.toLocaleString()} total reviews)`,
+    ``,
+    `### 🏷️ Top Business Categories`,
+    topCategories || '- No category data available',
+    ``,
+    `---`,
+    `*Extracted locally via AshxScrape Chrome Extension*`
+  ].join('\n');
+}
+
+/**
  * Triggers file download via Blob URL
  */
 export async function downloadFile(content, filename, mimeType = 'text/csv;charset=utf-8') {
+
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
 
@@ -204,4 +256,6 @@ export async function downloadFile(content, filename, mimeType = 'text/csv;chars
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+
+
 
