@@ -381,6 +381,17 @@ async function ensureStreamPort() {
   return activePort;
 }
 
+function safePostMessage(port, msg) {
+  if (!port) return false;
+  try {
+    port.postMessage(msg);
+    return true;
+  } catch (err) {
+    console.warn('[AshxScrape Panel] Port postMessage failed:', err);
+    return false;
+  }
+}
+
 // Controls
 el.btnStart.addEventListener('click', async () => {
   try {
@@ -392,7 +403,7 @@ el.btnStart.addEventListener('click', async () => {
     log(`Started harvest job #${currentJob.id} for "${query}"`, 'info');
     setState(JOB_STATE.SCROLLING);
 
-    port.postMessage({
+    safePostMessage(port, {
       action: MSG.START_JOB,
       payload: { maxResults: 200 }
     });
@@ -406,17 +417,17 @@ el.btnStart.addEventListener('click', async () => {
 el.btnPause.addEventListener('click', async () => {
   if (!activePort) return;
   if (currentState === JOB_STATE.SCROLLING) {
-    activePort.postMessage({ action: MSG.PAUSE_JOB });
+    safePostMessage(activePort, { action: MSG.PAUSE_JOB });
     setState(JOB_STATE.PAUSED);
   } else if (currentState === JOB_STATE.PAUSED) {
-    activePort.postMessage({ action: MSG.RESUME_JOB });
+    safePostMessage(activePort, { action: MSG.RESUME_JOB });
     setState(JOB_STATE.SCROLLING);
   }
 });
 
 el.btnStop.addEventListener('click', async () => {
   if (activePort) {
-    activePort.postMessage({ action: MSG.STOP_JOB });
+    safePostMessage(activePort, { action: MSG.STOP_JOB });
   }
   await flushDbBatch();
   setState(JOB_STATE.STOPPED);
@@ -611,7 +622,7 @@ if (el.btnDetailPass) {
     }
     log(`Starting detail pass on ${collectedRows.length} places...`, 'info');
     setState(JOB_STATE.DETAILING);
-    port.postMessage({
+    safePostMessage(port, {
       action: MSG.START_DETAIL_PASS,
       payload: { rows: collectedRows }
     });

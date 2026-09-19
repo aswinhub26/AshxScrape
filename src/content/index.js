@@ -156,8 +156,30 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== 'ashxscrape-stream') return;
   console.log('[AshxScrape] Direct streaming port connected from Side Panel.');
 
+  let isPortConnected = true;
+
+  function safePost(msg) {
+    if (!isPortConnected) return;
+    try {
+      port.postMessage(msg);
+    } catch (e) {
+      isPortConnected = false;
+      console.warn('[AshxScrape] Port postMessage failed (disconnected):', e.message);
+    }
+  }
+
+  port.onDisconnect.addListener(() => {
+    console.log('[AshxScrape] Streaming port disconnected.');
+    isPortConnected = false;
+    if (activeScroller) {
+      activeScroller.stop();
+      activeScroller = null;
+    }
+    detailPassStopped = true;
+  });
+
   port.onMessage.addListener((message) => {
-    if (!message || !message.action) return;
+    if (!message || !message.action || !isPortConnected) return;
 
     if (message.action === MSG.START_JOB) {
       const options = message.payload || {};
@@ -172,25 +194,25 @@ chrome.runtime.onConnect.addListener((port) => {
         maxResults: options.maxResults || 200,
         delays: options.delays,
         onRowCollected: (row, totalCount) => {
-          port.postMessage({
+          safePost({
             action: MSG.ROW_COLLECTED,
             payload: { row, totalCount }
           });
         },
         onStatusChange: (state, messageText) => {
-          port.postMessage({
+          safePost({
             action: MSG.STATUS_UPDATE,
             payload: { state, message: messageText }
           });
         },
         onComplete: (allRows) => {
-          port.postMessage({
+          safePost({
             action: MSG.JOB_COMPLETED,
             payload: { totalCount: allRows.length }
           });
         },
         onError: (err) => {
-          port.postMessage({
+          safePost({
             action: MSG.JOB_ERROR,
             payload: { error: err.message }
           });
@@ -198,7 +220,7 @@ chrome.runtime.onConnect.addListener((port) => {
       });
 
       activeScroller.start();
-      port.postMessage({ action: 'STARTED', query });
+      safePost({ action: 'STARTED', query });
     }
 
     if (message.action === MSG.PAUSE_JOB) {
@@ -222,39 +244,36 @@ chrome.runtime.onConnect.addListener((port) => {
       detailPassPaused = false;
       detailPassStopped = false;
 
-      port.postMessage({ action: MSG.STATUS_UPDATE, payload: { state: JOB_STATE.DETAILING, message: `Starting detail pass on ${rows.length} places...` } });
+      safePost({ action: MSG.STATUS_UPDATE, payload: { state: JOB_STATE.DETAILING, message: `Starting detail pass on ${rows.length} places...` } });
 
       // Collect current card elements from feed
       const feed = document.querySelector('div[role="feed"]');
       const cards = feed ? Array.from(pickAll(feed, SELECTORS.card)) : [];
 
       runDetailPass(cards, rows, {
-        isPaused: () => detailPassPaused,
-        isStopped: () => detailPassStopped,
+        isPaused: () => detailPassPaused || !isPortConnected,
+        isStopped: () => detailPassStopped || !isPortConnected,
         onProgress: (updatedRow, index, total) => {
-          port.postMessage({
+          safePost({
             action: MSG.ROW_UPDATED,
             payload: { row: updatedRow, index, total }
           });
         }
       }).then((updatedRows) => {
         detailPassActive = false;
-        port.postMessage({
+        safePost({
           action: MSG.DETAIL_PASS_COMPLETE,
           payload: { count: updatedRows.length }
         });
       }).catch((err) => {
         detailPassActive = false;
-        port.postMessage({
+        safePost({
           action: MSG.JOB_ERROR,
           payload: { error: err.message }
         });
       });
     }
   }); // end port.onMessage
-
-  port.onDisconnect.addListener(() => {
-    console.log('[AshxScrape] Streaming port disconnected.');
-  });
 });
+
 
