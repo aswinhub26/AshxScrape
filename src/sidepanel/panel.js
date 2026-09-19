@@ -301,89 +301,98 @@ async function flushDbBatch() {
   }
 }
 
+function attachPortListeners(port) {
+  port.onMessage.addListener((message) => {
+    if (message.action === MSG.ROW_COLLECTED && message.payload?.row) {
+      const { row } = message.payload;
+      collectedRows.push(row);
+      pendingDbBatch.push(row);
+
+      updateFilteredView();
+
+      if (pendingDbBatch.length >= 5) {
+        flushDbBatch();
+      } else if (!batchFlushTimer) {
+        batchFlushTimer = setTimeout(() => {
+          flushDbBatch();
+          batchFlushTimer = null;
+        }, 1000);
+      }
+    }
+
+    if (message.action === MSG.STATUS_UPDATE && message.payload) {
+      if (message.payload.state) setState(message.payload.state);
+      if (message.payload.message) log(message.payload.message, 'info');
+    }
+
+    if (message.action === MSG.JOB_COMPLETED) {
+      flushDbBatch();
+      setState(JOB_STATE.DONE);
+      log(`Finished. Collected ${collectedRows.length} unique places.`, 'info');
+      log(`Job completed! Total: ${collectedRows.length} places.`, 'success');
+
+      const phones = collectedRows.filter(r => r.phone).length;
+      if (collectedRows.length > 0 && phones === 0) {
+        log('💡 Tip: Phone numbers for hospitality/cafes are hidden in list view. Click "🔍 Detail" to extract phone numbers & opening hours.', 'info');
+      }
+    }
+
+    if (message.action === MSG.JOB_ERROR) {
+      setState(JOB_STATE.ERROR);
+      log(`Scraper error: ${message.payload.error}`, 'error');
+    }
+
+    // Phase 4: Detail pass row update
+    if (message.action === MSG.ROW_UPDATED && message.payload?.row) {
+      const updatedRow = message.payload.row;
+      const idx = collectedRows.findIndex(r => r.placeId === updatedRow.placeId);
+      if (idx !== -1) collectedRows[idx] = updatedRow;
+      updateFilteredView();
+      if (el.statDetailed) {
+        el.statDetailed.textContent = message.payload.index || '';
+      }
+      log(`Detail [${message.payload.index}/${message.payload.total}]: ${updatedRow.name}`, 'info');
+    }
+
+    // Phase 4: Detail pass complete
+    if (message.action === MSG.DETAIL_PASS_COMPLETE) {
+      setState(JOB_STATE.DONE);
+      flushDbBatch();
+      log(`Detail pass complete! Enriched ${message.payload.count} places.`, 'success');
+    }
+  });
+
+  port.onDisconnect.addListener(() => {
+    log('Streaming port disconnected.', 'info');
+    if (activePort === port) activePort = null;
+  });
+}
+
+async function ensureStreamPort() {
+  if (activePort) return activePort;
+  const targetTab = await getTargetTab();
+  if (!targetTab || !targetTab.id) {
+    log('No Google Maps tab found to harvest', 'error');
+    return null;
+  }
+  currentTabId = targetTab.id;
+  activePort = chrome.tabs.connect(currentTabId, { name: 'ashxscrape-stream' });
+  attachPortListeners(activePort);
+  return activePort;
+}
+
 // Controls
 el.btnStart.addEventListener('click', async () => {
   try {
-    const targetTab = await getTargetTab();
-    if (!targetTab || !targetTab.id) {
-      log('No Google Maps tab found to harvest', 'error');
-      return;
-    }
-    currentTabId = targetTab.id;
-
-    if (activePort) {
-      try { activePort.disconnect(); } catch (e) {}
-      activePort = null;
-    }
-
-    activePort = chrome.tabs.connect(currentTabId, { name: 'ashxscrape-stream' });
-
-    activePort.onMessage.addListener((message) => {
-      if (message.action === MSG.ROW_COLLECTED && message.payload?.row) {
-        const { row } = message.payload;
-        collectedRows.push(row);
-        pendingDbBatch.push(row);
-
-        updateFilteredView();
-
-        if (pendingDbBatch.length >= 5) {
-          flushDbBatch();
-        } else if (!batchFlushTimer) {
-          batchFlushTimer = setTimeout(() => {
-            flushDbBatch();
-            batchFlushTimer = null;
-          }, 1000);
-        }
-      }
-
-      if (message.action === MSG.STATUS_UPDATE && message.payload) {
-        if (message.payload.state) setState(message.payload.state);
-        if (message.payload.message) log(message.payload.message, 'info');
-      }
-
-      if (message.action === MSG.JOB_COMPLETED) {
-        flushDbBatch();
-        setState(JOB_STATE.DONE);
-        log(`Finished. Collected ${collectedRows.length} unique places.`, 'info');
-        log(`Job completed! Total: ${collectedRows.length} places.`, 'success');
-      }
-
-      if (message.action === MSG.JOB_ERROR) {
-        setState(JOB_STATE.ERROR);
-        log(`Scraper error: ${message.payload.error}`, 'error');
-      }
-
-      // Phase 4: Detail pass row update
-      if (message.action === MSG.ROW_UPDATED && message.payload?.row) {
-        const updatedRow = message.payload.row;
-        const idx = collectedRows.findIndex(r => r.placeId === updatedRow.placeId);
-        if (idx !== -1) collectedRows[idx] = updatedRow;
-        updateFilteredView();
-        if (el.statDetailed) {
-          el.statDetailed.textContent = message.payload.index || '';
-        }
-        log(`Detail [${message.payload.index}/${message.payload.total}]: ${updatedRow.name}`, 'info');
-      }
-
-      // Phase 4: Detail pass complete
-      if (message.action === MSG.DETAIL_PASS_COMPLETE) {
-        setState(JOB_STATE.DONE);
-        flushDbBatch();
-        log(`Detail pass complete! Enriched ${message.payload.count} places.`, 'success');
-      }
-
-    });
-
-    activePort.onDisconnect.addListener(() => {
-      log('Streaming port disconnected.', 'info');
-    });
+    const port = await ensureStreamPort();
+    if (!port) return;
 
     const query = el.detectedQuery.textContent || 'Unknown';
     currentJob = await createJob(query);
     log(`Started harvest job #${currentJob.id} for "${query}"`, 'info');
     setState(JOB_STATE.SCROLLING);
 
-    activePort.postMessage({
+    port.postMessage({
       action: MSG.START_JOB,
       payload: { maxResults: 200 }
     });
@@ -412,6 +421,11 @@ el.btnStop.addEventListener('click', async () => {
   await flushDbBatch();
   setState(JOB_STATE.STOPPED);
   log(`Stopped by user. Total collected: ${collectedRows.length}`, 'warn');
+
+  const phones = collectedRows.filter(r => r.phone).length;
+  if (collectedRows.length > 0 && phones === 0) {
+    log('💡 Tip: Phone numbers for hospitality/cafes are hidden in list view. Click "🔍 Detail" to extract phone numbers & opening hours.', 'info');
+  }
 });
 
 el.btnClear.addEventListener('click', () => {
@@ -586,13 +600,18 @@ if (el.btnExportJson) {
 // Detail Pass Button
 if (el.btnDetailPass) {
   el.btnDetailPass.addEventListener('click', async () => {
-    if (!activePort || collectedRows.length === 0) {
+    if (collectedRows.length === 0) {
       log('Start harvesting first to collect rows before running detail pass.', 'warn');
+      return;
+    }
+    const port = await ensureStreamPort();
+    if (!port) {
+      log('Could not connect to Google Maps tab for detail pass.', 'error');
       return;
     }
     log(`Starting detail pass on ${collectedRows.length} places...`, 'info');
     setState(JOB_STATE.DETAILING);
-    activePort.postMessage({
+    port.postMessage({
       action: MSG.START_DETAIL_PASS,
       payload: { rows: collectedRows }
     });

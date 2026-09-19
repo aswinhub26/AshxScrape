@@ -61,10 +61,13 @@ export function normalizePhone(rawPhone) {
   const raw = cleanText(rawPhone);
   if (!raw) return { phone: null, phoneRaw: null };
 
-  // Strip non-digit characters except leading '+'
-  let cleaned = raw.replace(/[^\d+]/g, '');
+  // Remove prefixes like "Phone:", "Call", "Tel:"
+  const cleanedRaw = raw.replace(/^(phone|call|tel)[:\s]*/i, '').trim();
 
-  // Handle India 10-digit mobile/landline numbers starting with 0 or no country code
+  // Strip non-digit characters except leading '+'
+  let cleaned = cleanedRaw.replace(/[^\d+]/g, '');
+
+  // Handle India 10-digit mobile numbers (starting with 6-9) or standard landlines
   if (/^0?[6-9]\d{9}$/.test(cleaned.replace(/^\+/, ''))) {
     const digits = cleaned.replace(/^\+?0?/, '');
     if (digits.length === 10) {
@@ -73,8 +76,8 @@ export function normalizePhone(rawPhone) {
   }
 
   return {
-    phone: cleaned,
-    phoneRaw: raw
+    phone: cleaned || null,
+    phoneRaw: cleanedRaw || raw
   };
 }
 
