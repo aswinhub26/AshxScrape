@@ -3,7 +3,7 @@
  * Opens each card's detail view, extracts richer fields, then navigates back.
  */
 
-import { cleanText, normalizePhone, extractDomain } from '../lib/schema.js';
+import { cleanText, normalizePhone, extractDomain, extractSocialHandles } from '../lib/schema.js';
 import { extractPlaceIdentifiers } from '../lib/dedupe.js';
 import { sleepJitter } from '../lib/throttle.js';
 
@@ -222,6 +222,14 @@ export function scrapeDetailPanel() {
     }
   }
 
+  // Social handles extraction from website and detail links
+  const allDetailHrefs = Array.from(document.querySelectorAll('a[href]')).map(a => a.href).filter(Boolean);
+  if (result.website) allDetailHrefs.push(result.website);
+  const socials = extractSocialHandles(allDetailHrefs);
+  result.instagram = socials.instagram;
+  result.facebook = socials.facebook;
+  result.linkedin = socials.linkedin;
+
   return result;
 }
 
@@ -302,6 +310,9 @@ export async function runDetailPass(cards, existingRows, options = {}) {
           targetRow.website = detailData.website;
           targetRow.domain = detailData.domain;
         }
+        if (detailData.instagram) targetRow.instagram = detailData.instagram;
+        if (detailData.facebook) targetRow.facebook = detailData.facebook;
+        if (detailData.linkedin) targetRow.linkedin = detailData.linkedin;
         if (detailData.hours) targetRow.hours = detailData.hours;
         if (detailData.priceLevel) targetRow.priceLevel = detailData.priceLevel;
         if (detailData.plusCode) targetRow.plusCode = detailData.plusCode;

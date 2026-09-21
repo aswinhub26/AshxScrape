@@ -14,6 +14,9 @@ export const FIELD_DEFINITIONS = [
   { key: 'phoneRaw', label: 'Raw Phone', source: 'detail', default: null },
   { key: 'website', label: 'Website', source: 'detail', default: null },
   { key: 'domain', label: 'Domain', source: 'derived', default: null },
+  { key: 'instagram', label: 'Instagram', source: 'enrich', default: null },
+  { key: 'facebook', label: 'Facebook', source: 'enrich', default: null },
+  { key: 'linkedin', label: 'LinkedIn', source: 'enrich', default: null },
   { key: 'hours', label: 'Opening Hours', source: 'detail', default: null },
   { key: 'priceLevel', label: 'Price Level', source: 'detail', default: null },
   { key: 'plusCode', label: 'Plus Code', source: 'detail', default: null },
@@ -93,3 +96,36 @@ export function extractDomain(url) {
     return null;
   }
 }
+
+/**
+ * Extracts recognized social media profile links from array of URLs or strings
+ */
+export function extractSocialHandles(urls) {
+  const result = { instagram: null, facebook: null, linkedin: null };
+  if (!urls) return result;
+  const list = Array.isArray(urls) ? urls : [urls];
+  for (const item of list) {
+    if (!item || typeof item !== 'string') continue;
+    const url = item.trim();
+
+    if (!result.instagram && /instagram\.com\/([a-zA-Z0-9._]+)/i.test(url)) {
+      const match = url.match(/instagram\.com\/([a-zA-Z0-9._]+)/i);
+      if (match && !['p', 'reel', 'stories', 'explore', 'about'].includes(match[1].toLowerCase())) {
+        result.instagram = 'https://www.instagram.com/' + match[1].replace(/\/$/, '');
+      }
+    }
+
+    if (!result.facebook && /facebook\.com\/([a-zA-Z0-9._\-]+)/i.test(url)) {
+      const match = url.match(/facebook\.com\/([a-zA-Z0-9._\-]+)/i);
+      if (match && !['sharer', 'pages', 'groups', 'help', 'login'].includes(match[1].toLowerCase())) {
+        result.facebook = 'https://www.facebook.com/' + match[1].replace(/\/$/, '');
+      }
+    }
+
+    if (!result.linkedin && /linkedin\.com\/(?:company|in)\/([a-zA-Z0-9._\-]+)/i.test(url)) {
+      result.linkedin = url.split('?')[0];
+    }
+  }
+  return result;
+}
+
