@@ -30,6 +30,7 @@ const el = {
   historyDrawer: document.getElementById('historyDrawer'),
   historyList: document.getElementById('historyList'),
   settingMaxResults: document.getElementById('settingMaxResults'),
+  settingSpeed: document.getElementById('settingSpeed'),
   settingDetailPass: document.getElementById('settingDetailPass'),
   statCollected: document.getElementById('statCollected'),
   statPhone: document.getElementById('statPhone'),
@@ -40,6 +41,7 @@ const el = {
   emptyState: document.getElementById('emptyState'),
   tableContainer: document.getElementById('tableContainer'),
   exportStatus: document.getElementById('exportStatus'),
+  btnCopyPhones: document.getElementById('btnCopyPhones'),
   btnCopySummary: document.getElementById('btnCopySummary'),
   btnExportCsv: document.getElementById('btnExportCsv'),
   btnExportXlsx: document.getElementById('btnExportXlsx'),
@@ -397,6 +399,13 @@ function safePostMessage(port, msg) {
   }
 }
 
+function getScrapeDelays() {
+  const speed = el.settingSpeed ? el.settingSpeed.value : 'balanced';
+  if (speed === 'fast') return { scrollMin: 600, scrollMax: 1000, detailMin: 500, detailMax: 1000 };
+  if (speed === 'stealth') return { scrollMin: 2000, scrollMax: 3500, detailMin: 1500, detailMax: 3000 };
+  return { scrollMin: 1000, scrollMax: 1800, detailMin: 800, detailMax: 1800 };
+}
+
 // Controls
 el.btnStart.addEventListener('click', async () => {
   try {
@@ -408,9 +417,14 @@ el.btnStart.addEventListener('click', async () => {
     log(`Started harvest job #${currentJob.id} for "${query}"`, 'info');
     setState(JOB_STATE.SCROLLING);
 
+    const maxResults = el.settingMaxResults ? parseInt(el.settingMaxResults.value, 10) || 200 : 200;
+
     safePostMessage(port, {
       action: MSG.START_JOB,
-      payload: { maxResults: 200 }
+      payload: {
+        maxResults,
+        delays: getScrapeDelays()
+      }
     });
 
   } catch (err) {
@@ -531,6 +545,28 @@ el.btnCopyTsv.addEventListener('click', async () => {
     log('Failed to copy to clipboard: ' + err.message, 'error');
   }
 });
+
+// Copy All Phone Numbers
+if (el.btnCopyPhones) {
+  el.btnCopyPhones.addEventListener('click', async () => {
+    let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
+    if (targetRows.length === 0) targetRows = collectedRows;
+    const phones = targetRows.map(r => r.phone || r.phoneRaw).filter(Boolean);
+    if (phones.length === 0) {
+      log('No phone numbers found in current records. Make sure detail enrichment has completed.', 'warn');
+      return;
+    }
+
+    setExportActiveButton(el.btnCopyPhones, '✓ Copied', '📞 Phones');
+    try {
+      await navigator.clipboard.writeText(phones.join('\n'));
+      if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${phones.length} phones`;
+      log(`📞 Copied ${phones.length} phone numbers to clipboard (one per line for WhatsApp/CRM)!`, 'success');
+    } catch (err) {
+      log('Failed to copy phones: ' + err.message, 'error');
+    }
+  });
+}
 
 // Copy Executive Lead Analytics Summary
 if (el.btnCopySummary) {
@@ -706,13 +742,14 @@ async function renderJobHistory() {
   }
 }
 
-// Settings: wire up max results and detail pass auto-run settings persistence
+// Settings: wire up max results, speed, and detail pass auto-run settings persistence
 function loadSettings() {
   try {
     const stored = localStorage.getItem('ashxscrape_settings');
     if (stored) {
       const s = JSON.parse(stored);
       if (el.settingMaxResults && s.maxResults) el.settingMaxResults.value = s.maxResults;
+      if (el.settingSpeed && s.speed) el.settingSpeed.value = s.speed;
       if (el.settingDetailPass && s.autoDetailPass !== undefined) el.settingDetailPass.checked = s.autoDetailPass;
     } else {
       if (el.settingDetailPass) el.settingDetailPass.checked = true;
@@ -726,16 +763,18 @@ function saveSettings() {
   try {
     const settings = {
       maxResults: el.settingMaxResults ? parseInt(el.settingMaxResults.value, 10) || 200 : 200,
+      speed: el.settingSpeed ? el.settingSpeed.value : 'balanced',
       autoDetailPass: el.settingDetailPass ? el.settingDetailPass.checked : true
     };
     localStorage.setItem('ashxscrape_settings', JSON.stringify(settings));
     return settings;
   } catch (e) {
-    return { maxResults: 200, autoDetailPass: true };
+    return { maxResults: 200, speed: 'balanced', autoDetailPass: true };
   }
 }
 
 if (el.settingMaxResults) el.settingMaxResults.addEventListener('change', saveSettings);
+if (el.settingSpeed) el.settingSpeed.addEventListener('change', saveSettings);
 if (el.settingDetailPass) el.settingDetailPass.addEventListener('change', saveSettings);
 
 // Phase 6: Selector Health Probe

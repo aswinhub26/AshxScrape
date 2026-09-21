@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-D3z0EV3c.js"></script>
+  <script type="module" crossorigin src="./assets/index-Bl98okO4.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-COu4sbHJ.css">
 </head>
 
@@ -191,6 +191,7 @@
     <footer class="export-bar">
       <div id="exportStatus" class="export-count">0 items ready</div>
       <div class="export-actions">
+        <button id="btnCopyPhones" class="btn ripple-surface liquid-track" title="Copy all phone numbers (one per line) for WhatsApp/CRM">📞 Phones</button>
         <button id="btnCopySummary" class="btn ripple-surface liquid-track" title="Copy executive lead analytics summary (Markdown)">Summary</button>
         <button id="btnCopyTsv" class="btn ripple-surface liquid-track" title="Copy to clipboard for Sheets/Excel">Copy</button>
         <button id="btnExportCsv" class="btn btn-primary ripple-surface liquid-track" title="Export CSV file">CSV</button>
@@ -209,6 +210,14 @@
       <label class="setting-row">
         <span>Max Results</span>
         <input type="number" id="settingMaxResults" class="filter-input" value="200" min="10" max="2000" style="width: 70px;">
+      </label>
+      <label class="setting-row">
+        <span>Harvest Speed</span>
+        <select id="settingSpeed" class="filter-input" style="width: 105px;">
+          <option value="fast">⚡ Fast</option>
+          <option value="balanced" selected>⚖️ Balanced</option>
+          <option value="stealth">🛡️ Stealth</option>
+        </select>
       </label>
       <label class="setting-row">
         <span>Auto-Extract Phones & Details</span>
