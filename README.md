@@ -43,22 +43,25 @@ The extension runs entirely within the browser without requiring external API to
 
 ## Key Features
 
-- **Automated Feed Ingestion**
+- **Automated Feed Ingestion & Auto-Enrichment**
   - Smooth virtual scrolling on `div[role="feed"]` with dynamic boundary and end-of-list detection.
   - Zero-drop place identifier (`CID` / `placeId`) deduplication across all scroll iterations.
+  - Automatic 1-click detail enrichment: extracts phone numbers, full addresses, websites, and weekly opening hours without extra manual steps.
 
-- **Human-Mimetic Throttling**
-  - Randomized request jitter (900ms–1800ms) across scroll steps and navigation actions to minimize rate-limiting signals.
+- **Social Media & Contact Intelligence**
+  - Extracts verified telephone numbers (with standard international `+91` & E.164 normalization).
+  - Automatically identifies business social profiles including **Instagram**, **Facebook**, and **LinkedIn** directly from listing details and website metadata.
 
-- **Deep Detail Enrichment Pass**
-  - Two-stage extraction pipeline: fast list-card ingestion followed by an optional automated detail pass.
-  - Extracts full street address, standardized operating hours, price level indicators, Google Plus Codes, and business claim status.
+- **Harvest Speed Presets & Human-Mimetic Throttling**
+  - Choose between **⚡ Fast**, **⚖️ Balanced**, or **🛡️ Stealth** modes to optimize between high extraction throughput and anti-bot protection.
+  - Dynamic randomized jitter delays across scroll steps and navigation actions.
 
 - **High-Throughput Virtualized UI**
   - DOM-virtualized preview table capable of rendering 5,000+ extracted records with only ~27 DOM elements active in memory (~29ms initial mount, 10ms frame scroll).
 
-- **Multi-Condition Lead Filtering**
+- **Multi-Condition Lead Filtering & Quick Tools**
   - Single-click targeting filters: *No Website* (high-intent lead generation), *Has Phone*, minimum review star rating, and real-time substring search.
+  - **📞 Copy Phones**: 1-click clipboard export of all extracted telephone numbers formatted for bulk WhatsApp / CRM campaigns.
 
 - **Export Formats & Sanitization**
   - **CSV**: RFC 4180 compliant with UTF-8 BOM and formula injection protection (automatic neutralization of `=`, `+`, `-`, `@` prefixes).
