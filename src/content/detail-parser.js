@@ -3,7 +3,7 @@
  * Opens each card's detail view, extracts richer fields, then navigates back.
  */
 
-import { cleanText, normalizePhone, extractDomain, extractSocialHandles } from '../lib/schema.js';
+import { cleanText, normalizePhone, extractDomain, extractSocialHandles, extractEmail, cleanUrl } from '../lib/schema.js';
 import { extractPlaceIdentifiers } from '../lib/dedupe.js';
 import { sleepJitter } from '../lib/throttle.js';
 
@@ -159,15 +159,17 @@ export function scrapeDetailPanel() {
   if (webEl) {
     const webHref = webEl.closest('a')?.href || webEl.href || null;
     if (webHref && !webHref.includes('google.com/maps')) {
-      result.website = webHref;
-      result.domain = extractDomain(webHref);
+      const sanitized = cleanUrl(webHref);
+      result.website = sanitized;
+      result.domain = extractDomain(sanitized);
     }
   }
   if (!result.website) {
     const webLink = document.querySelector('a[data-item-id="authority"]');
     if (webLink?.href && !webLink.href.includes('google.com/maps')) {
-      result.website = webLink.href;
-      result.domain = extractDomain(webLink.href);
+      const sanitized = cleanUrl(webLink.href);
+      result.website = sanitized;
+      result.domain = extractDomain(sanitized);
     }
   }
 
@@ -222,13 +224,19 @@ export function scrapeDetailPanel() {
     }
   }
 
-  // Social handles extraction from website and detail links
+  // Social handles and email extraction from website and detail links
   const allDetailHrefs = Array.from(document.querySelectorAll('a[href]')).map(a => a.href).filter(Boolean);
   if (result.website) allDetailHrefs.push(result.website);
+  
+  // Extract Social Handles
   const socials = extractSocialHandles(allDetailHrefs);
   result.instagram = socials.instagram;
   result.facebook = socials.facebook;
   result.linkedin = socials.linkedin;
+
+  // Extract Email from mailto links or detail text
+  const detailTexts = Array.from(document.querySelectorAll('.Io6YTe, .rogA2c, div[role="main"] span, div[role="main"] p')).map(e => e.innerText).filter(Boolean);
+  result.email = extractEmail([...allDetailHrefs, ...detailTexts]);
 
   return result;
 }
@@ -310,6 +318,7 @@ export async function runDetailPass(cards, existingRows, options = {}) {
           targetRow.website = detailData.website;
           targetRow.domain = detailData.domain;
         }
+        if (detailData.email) targetRow.email = detailData.email;
         if (detailData.instagram) targetRow.instagram = detailData.instagram;
         if (detailData.facebook) targetRow.facebook = detailData.facebook;
         if (detailData.linkedin) targetRow.linkedin = detailData.linkedin;
@@ -323,7 +332,7 @@ export async function runDetailPass(cards, existingRows, options = {}) {
       }
 
       // Return to feed via Google Maps Back button (fastest and most reliable)
-      const backBtn = document.querySelector('button[aria-label*="Back" i], button[jsaction*="pane.back"], button.hYBOP, button[data-tooltip*="Back" i]');
+      const backBtn = document.querySelector('button[aria-label*="Back" i], button[jsaction*="pane.back"], button.hYBOP, button[data-tooltip*="Back" i], button[aria-label*="back" i]');
       if (backBtn) {
         backBtn.click();
       } else {
@@ -336,7 +345,7 @@ export async function runDetailPass(cards, existingRows, options = {}) {
     } catch (err) {
       console.warn(`[AshxScrape DetailParser] Error on card ${i + 1}:`, err.message);
       try {
-        const backBtn = document.querySelector('button[aria-label*="Back" i], button.hYBOP');
+        const backBtn = document.querySelector('button[aria-label*="Back" i], button.hYBOP, button[jsaction*="pane.back"]');
         if (backBtn) backBtn.click(); else window.history.back();
       } catch (e) {}
       await sleepJitter(1000, 1500);

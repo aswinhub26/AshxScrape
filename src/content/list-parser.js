@@ -1,5 +1,5 @@
 import { SELECTORS, pick } from './selectors.js';
-import { createEmptyRow, cleanText, normalizePhone, extractDomain } from '../lib/schema.js';
+import { createEmptyRow, cleanText, normalizePhone, extractDomain, cleanUrl } from '../lib/schema.js';
 import { extractPlaceIdentifiers, generateFallbackKey } from '../lib/dedupe.js';
 
 // Classification helpers for card text tokens
@@ -161,7 +161,7 @@ export function parseCard(cardEl, query = '') {
     let domain = null;
     const webEl = pick(card, SELECTORS.cardWebsite);
     if (webEl && webEl.href && !webEl.href.includes('google.com/maps')) {
-      website = webEl.href;
+      website = cleanUrl(webEl.href);
       domain = extractDomain(website);
     }
 

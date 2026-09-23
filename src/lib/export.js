@@ -186,6 +186,10 @@ export function generateLeadSummary(rows, query = 'Leads') {
   const withPhone = rows.filter(r => r.phone).length;
   const withWebsite = rows.filter(r => r.website).length;
   const withoutWebsite = total - withWebsite;
+  const withEmail = rows.filter(r => r.email).length;
+  const withInstagram = rows.filter(r => r.instagram).length;
+  const withFacebook = rows.filter(r => r.facebook).length;
+  const withLinkedin = rows.filter(r => r.linkedin).length;
 
   const validRatings = rows.filter(r => typeof r.rating === 'number' && !isNaN(r.rating) && r.rating > 0);
   const avgRating = validRatings.length > 0
@@ -216,6 +220,8 @@ export function generateLeadSummary(rows, query = 'Leads') {
     `- **Phone Coverage:** ${withPhone} / ${total} (${Math.round((withPhone / total) * 100)}%)`,
     `- **Web Presence:** ${withWebsite} / ${total} (${Math.round((withWebsite / total) * 100)}%)`,
     `- **🔥 No-Website Opportunities:** ${withoutWebsite} (${Math.round((withoutWebsite / total) * 100)}%)`,
+    `- **📧 Email Contacts:** ${withEmail} / ${total} (${Math.round((withEmail / total) * 100)}%)`,
+    `- **📱 Social Media Leads:** ${withInstagram} Instagram, ${withFacebook} Facebook, ${withLinkedin} LinkedIn`,
     `- **Average Rating:** ★ ${avgRating} (from ${totalReviews.toLocaleString()} total reviews)`,
     ``,
     `### 🏷️ Top Business Categories`,

@@ -98,6 +98,81 @@ export function extractDomain(url) {
 }
 
 /**
+ * Cleans tracking parameters (utm_*, gclid, fbclid) from URLs
+ */
+export function cleanUrl(url) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref', '_ga'];
+    trackingParams.forEach(p => parsed.searchParams.delete(p));
+    // If no query params left, clean trailing '?'
+    let clean = parsed.toString();
+    if (clean.endsWith('?')) clean = clean.slice(0, -1);
+    return clean;
+  } catch (e) {
+    return url;
+  }
+}
+
+/**
+ * Extracts valid business email addresses from text strings or href lists
+ */
+export function extractEmail(input) {
+  if (!input) return null;
+  const list = Array.isArray(input) ? input : [input];
+  const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/;
+  const ignoredDomains = ['sentry.io', 'example.com', 'wixpress.com', 'schema.org', 'domain.com', 'google.com', 'googleapis.com'];
+  const ignoredExtensions = /\.(png|jpe?g|webp|gif|svg|css|js|woff2?)$/i;
+
+  for (const item of list) {
+    if (!item || typeof item !== 'string') continue;
+    
+    // Check mailto: links
+    if (item.toLowerCase().startsWith('mailto:')) {
+      const email = item.replace(/^mailto:/i, '').split('?')[0].trim().toLowerCase();
+      if (email && emailRegex.test(email) && !ignoredExtensions.test(email)) {
+        const domain = email.split('@')[1];
+        if (!ignoredDomains.some(d => domain?.endsWith(d))) {
+          return email;
+        }
+      }
+    }
+
+    // Check plaintext regex
+    const match = item.match(emailRegex);
+    if (match) {
+      const email = match[0].trim().toLowerCase();
+      if (!ignoredExtensions.test(email)) {
+        const domain = email.split('@')[1];
+        if (!ignoredDomains.some(d => domain?.endsWith(d))) {
+          return email;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Generates direct WhatsApp click-to-chat URL (https://wa.me/<digits>)
+ */
+export function generateWhatsAppUrl(phone) {
+  if (!phone) return null;
+  let digits = String(phone).replace(/\D/g, '');
+  if (!digits || digits.length < 7) return null;
+
+  // Handle standard Indian 10-digit mobile number prefixing
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    digits = '91' + digits;
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = '91' + digits.slice(1);
+  }
+
+  return `https://wa.me/${digits}`;
+}
+
+/**
  * Extracts recognized social media profile links from array of URLs or strings
  */
 export function extractSocialHandles(urls) {
@@ -128,4 +203,5 @@ export function extractSocialHandles(urls) {
   }
   return result;
 }
+
 
