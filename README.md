@@ -50,7 +50,9 @@ The extension runs entirely within the browser without requiring external API to
 
 - **Social Media & Contact Intelligence**
   - Extracts verified telephone numbers (with standard international `+91` & E.164 normalization).
+  - Automatically identifies business **Email addresses** from `mailto:` links and business metadata with built-in domain filtering.
   - Automatically identifies business social profiles including **Instagram**, **Facebook**, and **LinkedIn** directly from listing details and website metadata.
+  - Strips tracking query parameters (`utm_*`, `gclid`, `fbclid`) from business websites for clean CRM importing.
 
 - **Harvest Speed Presets & Human-Mimetic Throttling**
   - Choose between **⚡ Fast**, **⚖️ Balanced**, or **🛡️ Stealth** modes to optimize between high extraction throughput and anti-bot protection.
@@ -58,10 +60,12 @@ The extension runs entirely within the browser without requiring external API to
 
 - **High-Throughput Virtualized UI**
   - DOM-virtualized preview table capable of rendering 5,000+ extracted records with only ~27 DOM elements active in memory (~29ms initial mount, 10ms frame scroll).
+  - Live contact badge indicators for instant visual confirmation of phone numbers, websites, emails, and Instagram profiles.
 
 - **Multi-Condition Lead Filtering & Quick Tools**
   - Single-click targeting filters: *No Website* (high-intent lead generation), *Has Phone*, minimum review star rating, and real-time substring search.
-  - **📞 Copy Phones**: 1-click clipboard export of all extracted telephone numbers formatted for bulk WhatsApp / CRM campaigns.
+  - **📞 Copy Phones**: 1-click clipboard export of all extracted telephone numbers (or `Shift+Click` for instant `https://wa.me/` direct chat links) formatted for bulk WhatsApp / CRM campaigns.
+  - **📋 Lead Summary**: Generates rich Markdown executive lead analytics summaries with email, social, phone, and website statistics.
 
 - **Export Formats & Sanitization**
   - **CSV**: RFC 4180 compliant with UTF-8 BOM and formula injection protection (automatic neutralization of `=`, `+`, `-`, `@` prefixes).

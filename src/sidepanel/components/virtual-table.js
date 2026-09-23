@@ -140,10 +140,28 @@ export class VirtualTable {
       const rating = row.rating ? `★ ${row.rating}` : '—';
       const reviews = row.reviewCount ? row.reviewCount.toLocaleString() : '—';
       const category = this.escapeHtml(row.category || '—');
-      const phone = this.escapeHtml(row.phone || '—');
-      const website = row.website
-        ? `<a href="${this.escapeHtml(row.website)}" target="_blank">${this.escapeHtml(row.domain || 'website')}</a>`
-        : '<span style="color:var(--text-muted)">none</span>';
+      
+      // Contact / Phone cell
+      let phoneDisplay = '—';
+      if (row.phone) {
+        phoneDisplay = `<span title="${this.escapeHtml(row.phone)}">${this.escapeHtml(row.phone)}</span>`;
+      }
+
+      // Website & Socials cell
+      let webBadges = '';
+      if (row.website) {
+        webBadges += `<a href="${this.escapeHtml(row.website)}" target="_blank" title="Website: ${this.escapeHtml(row.website)}">${this.escapeHtml(row.domain || 'website')}</a>`;
+      } else {
+        webBadges += '<span style="color:var(--text-muted)">none</span>';
+      }
+
+      if (row.email) {
+        webBadges += ` <a href="mailto:${this.escapeHtml(row.email)}" title="Email: ${this.escapeHtml(row.email)}" style="font-size:11px;text-decoration:none;">✉️</a>`;
+      }
+      if (row.instagram) {
+        webBadges += ` <a href="${this.escapeHtml(row.instagram)}" target="_blank" title="Instagram: ${this.escapeHtml(row.instagram)}" style="font-size:11px;text-decoration:none;">📸</a>`;
+      }
+
       const address = this.escapeHtml(row.address || '—');
 
       html += `
@@ -153,8 +171,8 @@ export class VirtualTable {
           <td>${rating}</td>
           <td>${reviews}</td>
           <td title="${category}">${category}</td>
-          <td>${phone}</td>
-          <td>${website}</td>
+          <td>${phoneDisplay}</td>
+          <td>${webBadges}</td>
           <td title="${address}">${address}</td>
         </tr>
       `;

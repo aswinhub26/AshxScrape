@@ -3,6 +3,7 @@ import { createJob, updateJob, saveRowsBatch, openDatabase, getAllJobs, getRowsF
 import { VirtualTable } from './components/virtual-table.js';
 import { FilterBar } from './components/filter-bar.js';
 import { generateCsv, generateTsv, generateFilename, downloadFile, generateXlsx, generateJson, generateLeadSummary } from '../lib/export.js';
+import { generateWhatsAppUrl } from '../lib/schema.js';
 
 
 // DOM Element References
@@ -546,9 +547,9 @@ el.btnCopyTsv.addEventListener('click', async () => {
   }
 });
 
-// Copy All Phone Numbers
+// Copy All Phone Numbers or WhatsApp direct links (Shift+Click)
 if (el.btnCopyPhones) {
-  el.btnCopyPhones.addEventListener('click', async () => {
+  el.btnCopyPhones.addEventListener('click', async (e) => {
     let targetRows = filterBar ? filterBar.apply(collectedRows) : collectedRows;
     if (targetRows.length === 0) targetRows = collectedRows;
     const phones = targetRows.map(r => r.phone || r.phoneRaw).filter(Boolean);
@@ -557,13 +558,26 @@ if (el.btnCopyPhones) {
       return;
     }
 
-    setExportActiveButton(el.btnCopyPhones, '✓ Copied', '📞 Phones');
-    try {
-      await navigator.clipboard.writeText(phones.join('\n'));
-      if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${phones.length} phones`;
-      log(`📞 Copied ${phones.length} phone numbers to clipboard (one per line for WhatsApp/CRM)!`, 'success');
-    } catch (err) {
-      log('Failed to copy phones: ' + err.message, 'error');
+    const isWhatsAppMode = e.shiftKey;
+    if (isWhatsAppMode) {
+      const waLinks = phones.map(p => generateWhatsAppUrl(p)).filter(Boolean);
+      setExportActiveButton(el.btnCopyPhones, '✓ WA Links', '📞 Phones');
+      try {
+        await navigator.clipboard.writeText(waLinks.join('\n'));
+        if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${waLinks.length} WhatsApp links`;
+        log(`💬 Copied ${waLinks.length} WhatsApp chat links (https://wa.me/...) to clipboard!`, 'success');
+      } catch (err) {
+        log('Failed to copy WhatsApp links: ' + err.message, 'error');
+      }
+    } else {
+      setExportActiveButton(el.btnCopyPhones, '✓ Copied', '📞 Phones');
+      try {
+        await navigator.clipboard.writeText(phones.join('\n'));
+        if (el.exportStatus) el.exportStatus.textContent = `✓ Copied ${phones.length} phones`;
+        log(`📞 Copied ${phones.length} phone numbers to clipboard (one per line for WhatsApp/CRM)!`, 'success');
+      } catch (err) {
+        log('Failed to copy phones: ' + err.message, 'error');
+      }
     }
   });
 }
